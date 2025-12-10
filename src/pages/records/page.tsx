@@ -51,6 +51,17 @@ export default function RecordsPage() {
 
   return (
     <>
+      <div className="flex mb-2 justify-between space-x-2">
+        <div className="space-y-1 flex-1 max-w-sm">
+          <Label htmlFor="name">Search name</Label>
+          <Input
+            id="name"
+            placeholder="Search by name..."
+            onChange={(event) => {
+              handleParamChange("name", event.target.value);
+            }}
+          />
+        </div>
 
         <div className="space-y-1">
           <Label htmlFor="date">Filter by date</Label>
