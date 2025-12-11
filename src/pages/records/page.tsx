@@ -1,25 +1,30 @@
-import { useSearchParams } from "react-router";
-import AttendanceTable from "./ui/table";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import DatePicker from "@/components/date-picker";
-import { useEffect, useState } from "react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import type { AttendanceRecord, FetchAttendanceRecord } from "./types";
 import { get } from "@/lib/apiFetch";
 import { formatDateToLocal } from "@/lib/date";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
+import type { AttendanceRecord, DataWithPagination } from "../../types";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import DatePicker from "@/components/date-picker";
+import AttendanceRecordTable from "./ui/table";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
 export default function RecordsPage() {
   const [searchParams, setSearchParams] = useSearchParams({
     name: "",
     date: "",
-    page: "",
+    page: "1",
   });
+
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    AttendanceRecord[]
+  >([]);
 
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [page, setPage] = useState<number>(1);
+  const [totalPage, setTotalPage] = useState<number>();
 
   function handleParamChange(key: string, val: string) {
     setSearchParams((prevParams) => {
@@ -29,30 +34,27 @@ export default function RecordsPage() {
     });
   }
 
-  const [attendanceRecords, setAttendanceRecords] = useState<
-    AttendanceRecord[]
-  >([]);
-
-  const [totalPage, setTotalPage] = useState<number>();
-
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
 
-    get(`attendance-records?${params}`).then((data: FetchAttendanceRecord) => {
-      setAttendanceRecords(
-        data.rows.map((item) => ({
-          ...item,
-          date: formatDateToLocal(item.date, "MM-dd-yyyy"),
-        }))
-      );
-      setTotalPage(data.totalPage);
-    });
+    get(`attendance-records?${params}`).then(
+      (response: DataWithPagination<AttendanceRecord[]>) => {
+        setAttendanceRecords(
+          response.data.map((item) => ({
+            ...item,
+            date: formatDateToLocal(item.date, "MM-dd-yyyy"),
+          }))
+        );
+        setTotalPage(response.pagination?.totalPage);
+        setPage(response.pagination?.page);
+      }
+    );
   }, [searchParams]);
 
   return (
     <>
-      <div className="flex mb-2 justify-between space-x-2">
-        <div className="space-y-1 flex-1 max-w-sm">
+      <div className="flex justify-between mb-2 space-x-2">
+        <div className="flex-1 max-w-sm space-y-1">
           <Label htmlFor="name">Search name</Label>
           <Input
             id="name"
@@ -77,7 +79,7 @@ export default function RecordsPage() {
         </div>
       </div>
 
-      <AttendanceTable attendanceRecords={attendanceRecords} />
+      <AttendanceRecordTable attendanceRecords={attendanceRecords} />
 
       <div className="flex justify-center w-full gap-2 mx-auto mt-2">
         <Button
