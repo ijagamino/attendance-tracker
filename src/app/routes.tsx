@@ -3,6 +3,7 @@ import DashboardPage from "../pages/dashboard/page";
 import DefaultLayout from "../layouts/default-layout";
 import RecordsPage from "../pages/records/page";
 import HomePage from "../pages/home/page";
+import { UserIdPage } from "@/pages/users/id/page";
 
 export default function AppRouter() {
   return (
@@ -25,6 +26,13 @@ export default function AppRouter() {
             <Route
               index
               element={<RecordsPage />}
+            />
+          </Route>
+
+          <Route path="users">
+            <Route
+              path=":id"
+              element={<UserIdPage />}
             />
           </Route>
         </Route>

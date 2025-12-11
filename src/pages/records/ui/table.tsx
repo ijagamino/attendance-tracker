@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import type { AttendanceRecord, FetchAttendanceRecord } from "../types";
-import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
+import type { AttendanceRecord } from "../../../types";
 import {
   Table,
   TableBody,
@@ -9,15 +8,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import { get } from "@/lib/apiFetch";
-import { formatDateToLocal } from "@/lib/date";
 
-export default function AttendanceTable({
+export default function AttendanceRecordTable({
   attendanceRecords,
 }: {
   attendanceRecords: AttendanceRecord[];
 }) {
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="border rounded-md">
@@ -29,16 +27,21 @@ export default function AttendanceTable({
               <TableHead>Time In</TableHead>
               <TableHead>Time Out</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Total Hours</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {attendanceRecords.map((attendanceRecord) => (
-              <TableRow key={attendanceRecord.id}>
+              <TableRow
+                key={attendanceRecord.id}
+                onClick={() => navigate(`/users/${attendanceRecord.userId}`)}
+              >
                 <TableCell>{attendanceRecord.username}</TableCell>
                 <TableCell>{attendanceRecord.date}</TableCell>
-                <TableCell>{attendanceRecord.time_in}</TableCell>
-                <TableCell>{attendanceRecord.time_out}</TableCell>
+                <TableCell>{attendanceRecord.timeIn}</TableCell>
+                <TableCell>{attendanceRecord.timeOut}</TableCell>
                 <TableCell>{attendanceRecord.status}</TableCell>
+                <TableCell>{attendanceRecord.totalHours}</TableCell>
               </TableRow>
             ))}
           </TableBody>
