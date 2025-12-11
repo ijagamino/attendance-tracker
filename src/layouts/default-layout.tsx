@@ -5,7 +5,7 @@ export default function DefaultLayout() {
   return (
     <>
       <AppHeader />
-      <main className="container max-w-4xl mx-auto mt-4">
+      <main className="container max-w-4xl px-4 mx-auto mt-4">
         <Outlet />
       </main>
     </>
