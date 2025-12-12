@@ -12,9 +12,8 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import DatePicker from "@/components/date-picker";
 import AttendanceRecordTable from "./ui/table";
-import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { TypographyH1 } from "@/components/ui/typography";
+import PaginationButtons from "@/components/pagination-buttons";
 
 export default function RecordsPage() {
   const [searchParams, setSearchParams] = useSearchParams({
@@ -90,29 +89,14 @@ export default function RecordsPage() {
 
       <AttendanceRecordTable attendanceRecords={attendanceRecords} />
 
-      <div className="flex justify-center w-full gap-2 mx-auto mt-2">
-        <Button
-          onClick={() => {
-            const previousPage = page - 1;
-            setPage(previousPage);
-            handleParamChange("page", String(previousPage));
-          }}
-          disabled={page <= 1}
-        >
-          <ArrowLeftIcon />
-        </Button>
-
-        <Button
-          onClick={() => {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            handleParamChange("page", String(nextPage));
-          }}
-          disabled={page === totalPage}
-        >
-          <ArrowRightIcon />
-        </Button>
-      </div>
+      <PaginationButtons
+        page={page}
+        totalPage={totalPage}
+        onPageChange={(newPage) => {
+          setPage(newPage);
+          handleParamChange("page", newPage.toString());
+        }}
+      />
     </>
   );
 }
