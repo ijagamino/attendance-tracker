@@ -14,6 +14,7 @@ import DatePicker from "@/components/date-picker";
 import AttendanceRecordTable from "./ui/table";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { TypographyH1 } from "@/components/ui/typography";
 
 export default function RecordsPage() {
   const [searchParams, setSearchParams] = useSearchParams({
@@ -57,6 +58,10 @@ export default function RecordsPage() {
 
   return (
     <>
+      <header>
+        <TypographyH1>Attendance Records</TypographyH1>
+      </header>
+
       <div className="flex justify-between mb-2 space-x-2">
         <div className="flex-1 max-w-sm space-y-1">
           <Label htmlFor="name">Search name</Label>
