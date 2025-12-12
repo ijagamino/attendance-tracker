@@ -29,7 +29,7 @@ export default function DashboardPage() {
         <TypographyH1>Dashboard</TypographyH1>
       </header>
 
-      <TypographyH2>Summary of Today</TypographyH2>
+      <TypographyH2>Summary of today</TypographyH2>
 
       <div className="grid my-8 grid-cols-1 md:grid-cols-3 gap-4">
         <DashboardCard title="Attendees">
@@ -50,6 +50,10 @@ export default function DashboardPage() {
           </p>
         </DashboardCard>
       </div>
+
+      <hr className="mb-4" />
+
+      <TypographyH2>Summary per user</TypographyH2>
 
       <div className="rounded-md border">
         <Table>
