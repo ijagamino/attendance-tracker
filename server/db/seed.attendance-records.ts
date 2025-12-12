@@ -17,7 +17,7 @@ export default async function seedAttendanceRecords() {
         time_out TIME, 
         status VARCHAR(255) GENERATED ALWAYS AS
           (CASE
-            WHEN (HOUR(time_in) > 9) THEN 'Late'
+            WHEN (HOUR(time_in) > 9 AND MINUTE(time_in) > 15) THEN 'Late'
             ELSE 'On time'
           END)
           VIRTUAL,
