@@ -1,16 +1,9 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { get } from "@/lib/apiFetch";
 import type { DashboardResponse, ApiResponse } from "@/types";
 import { useEffect, useState } from "react";
 import DashboardCard from "./ui/card";
 import { TypographyH1, TypographyH2 } from "@/components/ui/typography";
+import DashboardUserTable from "./ui/table";
 
 export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse>();
@@ -55,25 +48,7 @@ export default function DashboardPage() {
 
       <TypographyH2>Summary per user</TypographyH2>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Total Rendered Hours</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dashboardData &&
-              dashboardData.users.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.username}</TableCell>
-                  <TableCell>{item.totalRenderedHours}</TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DashboardUserTable dashboardData={dashboardData} />
     </>
   );
 }

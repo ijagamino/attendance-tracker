@@ -12,14 +12,14 @@ import { TypographyH1 } from "@/components/ui/typography";
 import { patch, post } from "@/lib/apiFetch";
 
 export default function HomePage() {
-  function submit(formData: FormData, type: "create" | "update") {
+  async function submit(formData: FormData, type: "create" | "update") {
     const { username } = { username: formData.get("username") };
     if (type === "create") {
-      post("attendance-records", { body: JSON.stringify({ username }) });
+      await post("attendance-records", { body: JSON.stringify({ username }) });
     }
 
     if (type === "update") {
-      patch("attendance-records", { body: JSON.stringify({ username }) });
+      await patch("attendance-records", { body: JSON.stringify({ username }) });
     }
     return;
   }
@@ -48,7 +48,7 @@ export default function HomePage() {
             </div>
           </CardContent>
 
-          <CardFooter className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <CardFooter className="grid grid-cols-1 gap-2 md:grid-cols-2">
             <Button
               className="w-full"
               formAction={(formData) => submit(formData, "create")}

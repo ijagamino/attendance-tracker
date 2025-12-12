@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TypographyH2 } from "@/components/ui/typography";
 import { get } from "@/lib/apiFetch";
 import { formatDateToLocal } from "@/lib/date";
@@ -9,11 +7,13 @@ import type {
   UserProfileResponse,
 } from "@/types";
 import AttendanceRecordTable from "@/pages/records/ui/table";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
+import PaginationButtons from "@/components/pagination-buttons";
+import { UserProfileCard } from "./ui/card";
+import { Frown } from "lucide-react";
 
-export function UserIdPage() {
+export default function UserIdPage() {
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
@@ -64,11 +64,13 @@ export function UserIdPage() {
     <>
       <TypographyH2>{username}'s attendance records</TypographyH2>
       <div className="grid my-2 max-w-72">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total hours rendered this month</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <UserProfileCard title="Total hours rendered this month">
+          {!hours && !minutes && !seconds ? (
+            <Frown
+              className="mx-auto"
+              size={64}
+            />
+          ) : (
             <div className="flex items-center justify-center space-x-2">
               <span className="col-span-1 row-span-2 font-extrabold text-7xl">
                 {hours}H
@@ -80,35 +82,20 @@ export function UserIdPage() {
                 <span className="col-span-1 text-2xl">{seconds}S</span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </UserProfileCard>
       </div>
 
       <AttendanceRecordTable attendanceRecords={attendanceRecords} />
 
-      <div className="flex justify-center w-full gap-2 mx-auto mt-2">
-        <Button
-          onClick={() => {
-            const previousPage = page - 1;
-            setPage(previousPage);
-            handleParamChange("page", String(previousPage));
-          }}
-          disabled={page <= 1}
-        >
-          <ArrowLeftIcon />
-        </Button>
-
-        <Button
-          onClick={() => {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            handleParamChange("page", String(nextPage));
-          }}
-          disabled={page === totalPage}
-        >
-          <ArrowRightIcon />
-        </Button>
-      </div>
+      <PaginationButtons
+        page={page}
+        totalPage={totalPage}
+        onPageChange={(newPage) => {
+          setPage(newPage);
+          handleParamChange("page", newPage.toString());
+        }}
+      />
     </>
   );
 }
