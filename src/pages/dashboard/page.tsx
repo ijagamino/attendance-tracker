@@ -7,42 +7,69 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { get } from "@/lib/apiFetch";
-import type {
-  DashboardRows,
-  DashboardStats,
-  RowsWithStats,
-  Data,
-} from "@/types";
+import type { DashboardResponse, ApiResponse } from "@/types";
 import { useEffect, useState } from "react";
+import DashboardCard from "./ui/card";
+import { TypographyH1, TypographyH2 } from "@/components/ui/typography";
 
 export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<DashboardRows[]>([]);
+  const [dashboardData, setDashboardData] = useState<DashboardResponse>();
 
   useEffect(() => {
-    get("dashboard").then(
-      (response: Data<RowsWithStats<DashboardRows[], DashboardStats>>) => {
-        setDashboardData(response.data.rows);
-        console.log(response.data);
-      }
-    );
+    get("dashboard").then((response: ApiResponse<DashboardResponse>) => {
+      setDashboardData(response.data);
+    });
   }, []);
+
+  const [hours, minutes] = dashboardData?.earliest?.split(":") ?? [];
+
   return (
-    <div className="rounded-md bordered">
-      <Table>
-        <TableHeader>
-          <TableHead>Name</TableHead>
-          <TableHead>Total Rendered Hours</TableHead>
-        </TableHeader>
-        <TableBody>
-          {dashboardData &&
-            dashboardData.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.username}</TableCell>
-                <TableCell>{item.totalRenderedHours}</TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <header>
+        <TypographyH1>Dashboard</TypographyH1>
+      </header>
+
+      <TypographyH2>Summary of Today</TypographyH2>
+
+      <div className="grid my-8 grid-cols-1 md:grid-cols-3 gap-4">
+        <DashboardCard title="Attendees">
+          <p className="font-extrabold text-center text-6xl">
+            {dashboardData?.attendees}
+          </p>
+        </DashboardCard>
+
+        <DashboardCard title="Late Attendees">
+          <p className="font-extrabold text-center text-6xl">
+            {dashboardData?.lateAttendees}
+          </p>
+        </DashboardCard>
+
+        <DashboardCard title="Earliest Time-in">
+          <p className=" font-extrabold text-center text-6xl">
+            {hours}:{minutes}
+          </p>
+        </DashboardCard>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Total Rendered Hours</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {dashboardData &&
+              dashboardData.users.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.username}</TableCell>
+                  <TableCell>{item.totalRenderedHours}</TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

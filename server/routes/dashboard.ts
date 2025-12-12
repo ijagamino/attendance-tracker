@@ -1,14 +1,18 @@
 import express from "express";
 import connection from "../db/db.ts";
-import type { Dashboard, DashboardStats } from "../db/types.ts";
-import type { Object, ApiResponse } from "./types.ts";
-import { camelCaseRowFields } from "../lib/utils.ts";
+import type {
+  DashboardUsersQuery,
+  DashboardSummaryQuery,
+  User,
+} from "../db/types.ts";
+import type { ApiResponse, DashboardResponse } from "./types.ts";
+import { camelCaseRowFields, formatToMonth } from "../lib/utils.ts";
 
 const dashboardRoutes = express.Router();
 
 dashboardRoutes.get("/", async (req, res) => {
   try {
-    const [rows] = await connection.query<Dashboard[]>(
+    const [rows] = await connection.query<DashboardUsersQuery[]>(
       `
       SELECT
       u.*,
@@ -19,23 +23,29 @@ dashboardRoutes.get("/", async (req, res) => {
       `
     );
 
-    const [statsRow] = await connection.query<DashboardStats[]>(
+    const today = new Date();
+    const [statsRow] = await connection.execute<DashboardSummaryQuery[]>(
       `
       SELECT
       COUNT(id) AS attendees,
       SUM(CASE WHEN ar.status = 'Late' THEN 1 ELSE 0 end) AS late_attendees,
       MIN(ar.time_in) AS earliest
       FROM attendance_records ar
-      WHERE ar.date = '2025-12-11'
-      `
+      WHERE ar.date = ?
+      `,
+      [formatToMonth(today)]
     );
 
     const stats = statsRow[0];
 
-    const response: ApiResponse<{ rows: Dashboard[]; stats: Object }> = {
+    const response: ApiResponse<DashboardResponse> = {
       data: {
-        rows: camelCaseRowFields(rows) as Dashboard[],
-        stats,
+        users: camelCaseRowFields(rows) as (User & {
+          totalRenderedHours: string;
+        })[],
+        attendees: stats.attendees,
+        lateAttendees: stats.late_attendees,
+        earliest: stats.earliest,
       },
     };
 
