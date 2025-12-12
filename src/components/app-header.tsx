@@ -29,7 +29,7 @@ const navItems: NavItem[] = [
 
 export default function AppHeader() {
   return (
-    <header className="px-4 py-2 flex items-center justify-between">
+    <header className="px-4 py-2 flex items-center justify-between border-b">
       <h6>Attendance Tracker System</h6>
 
       <div className="flex space-x-2">
