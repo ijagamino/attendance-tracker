@@ -1,14 +1,15 @@
 import _ from "lodash";
 
 import type { RowDataPacket } from "mysql2";
-import type { Object } from "../routes/types.ts";
 import { format } from "date-fns";
 
-export function camelCaseObjectKeys(object: Object) {
+export function camelCaseObjectKeys(
+  object: Record<string, string | number | boolean>
+) {
   let key;
   const keys = Object.keys(object);
   const n = keys.length;
-  const newObject: Object = {};
+  const newObject: Record<string, string | number | boolean> = {};
 
   for (let i = 0; i < n; i++) {
     key = keys[i];

@@ -1,6 +1,4 @@
-export type Object = {
-  [k: string]: string | number | boolean;
-};
+import { AttendanceRecord, User } from "../db/types";
 
 interface Pagination {
   page: number;
@@ -14,5 +12,33 @@ export interface PaginationParams {
 
 export interface ApiResponse<T> {
   data: T;
-  pagination?: Pagination;
+}
+
+export interface Paginated<T> {
+  items: T[];
+  pagination: Pagination;
+}
+
+export interface UserProfileResponse {
+  attendanceRecords: Paginated<AttendanceRecord>;
+  totalRenderedHours: string;
+}
+
+export interface AttendanceRecordResponse {
+  attendanceRecords: Paginated<AttendanceRecord>;
+}
+
+export interface UsersResponse {
+  users: User[];
+}
+
+export interface UserIdResponse extends UsersResponse {
+  total_progress: string;
+}
+
+export interface DashboardResponse {
+  users: (User & { totalRenderedHours: string })[];
+  attendees: number;
+  lateAttendees: number;
+  earliest: string;
 }

@@ -1,35 +1,33 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TypographyH2 } from "@/components/ui/typography";
 import { get } from "@/lib/apiFetch";
 import { formatDateToLocal } from "@/lib/date";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
 import type {
   ApiResponse,
   AttendanceRecord,
-  AttendanceRecordResponse,
+  UserProfileResponse,
 } from "@/types";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
-import DatePicker from "@/components/date-picker";
-import AttendanceRecordTable from "./ui/table";
-import { Button } from "@/components/ui/button";
+import AttendanceRecordTable from "@/pages/records/ui/table";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
-import { TypographyH1 } from "@/components/ui/typography";
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router";
 
-export default function RecordsPage() {
-  const [searchParams, setSearchParams] = useSearchParams({
-    name: "",
-    date: "",
-    page: "1",
-  });
-
+export function UserIdPage() {
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([]);
 
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams({
+    page: "1",
+  });
+
   const [page, setPage] = useState<number>(1);
   const [totalPage, setTotalPage] = useState<number>();
+  const [totalRenderedHours, setTotalRenderedHours] = useState<
+    string | undefined
+  >("");
+  const [username, setUsername] = useState<string | undefined>("");
 
   function handleParamChange(key: string, val: string) {
     setSearchParams((prevParams) => {
@@ -39,53 +37,51 @@ export default function RecordsPage() {
     });
   }
 
+  const { id } = useParams();
+
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
 
-    get(`attendance-records?${params}`).then(
-      (response: ApiResponse<AttendanceRecordResponse>) => {
+    get(`users/${id}/attendance-records?${params}`).then(
+      (response: ApiResponse<UserProfileResponse>) => {
         setAttendanceRecords(
           response.data.attendanceRecords.items.map((item) => ({
             ...item,
             date: formatDateToLocal(item.date, "MM-dd-yyyy"),
           }))
         );
+        setUsername(response.data.attendanceRecords.items[0].username);
+        setTotalRenderedHours(response.data.totalRenderedHours);
         setTotalPage(response.data.attendanceRecords.pagination.totalPage);
         setPage(response.data.attendanceRecords.pagination.page);
       }
     );
-  }, [searchParams]);
+  }, [searchParams, id]);
+
+  const [hours, minutes, seconds] = totalRenderedHours?.split(":") ?? [];
 
   return (
     <>
-      <header>
-        <TypographyH1>Attendance Records</TypographyH1>
-      </header>
-
-      <div className="flex justify-between mb-2 space-x-2">
-        <div className="flex-1 max-w-sm space-y-1">
-          <Label htmlFor="name">Search name</Label>
-          <Input
-            id="name"
-            placeholder="Search by name..."
-            onChange={(event) => {
-              handleParamChange("name", event.target.value);
-            }}
-          />
-        </div>
-
-        <div className="space-y-1">
-          <Label htmlFor="date">Filter by date</Label>
-          <DatePicker
-            date={date}
-            onSelect={(selectedDate: Date | undefined) => {
-              setDate(selectedDate);
-              if (selectedDate) {
-                handleParamChange("date", format(selectedDate, "yyyy-MM-dd"));
-              }
-            }}
-          />
-        </div>
+      <TypographyH2>{username}'s attendance records</TypographyH2>
+      <div className="grid my-2 max-w-72">
+        <Card>
+          <CardHeader>
+            <CardTitle>Total hours rendered this month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="col-span-1 row-span-2 font-extrabold text-7xl">
+                {hours}H
+              </span>
+              <div className="flex flex-col">
+                <span className="col-span-1 text-2xl font-bold text-center">
+                  {minutes}M
+                </span>
+                <span className="col-span-1 text-2xl">{seconds}S</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <AttendanceRecordTable attendanceRecords={attendanceRecords} />
