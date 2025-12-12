@@ -1,4 +1,5 @@
-import { AttendanceRecord, User } from "../db/types";
+import type { AttendanceRecord, User } from "../db/types.ts";
+import type { JwtPayload } from "jsonwebtoken";
 
 interface Pagination {
   page: number;
@@ -41,4 +42,9 @@ export interface DashboardResponse {
   attendees: number;
   lateAttendees: number;
   earliest: string;
+}
+
+export interface AuthPayload extends JwtPayload {
+  id: number;
+  username: string;
 }

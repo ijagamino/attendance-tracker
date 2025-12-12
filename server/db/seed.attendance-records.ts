@@ -9,7 +9,8 @@ export default async function seedAttendanceRecords() {
   );
 
   await connection.query<ResultSetHeader>(
-    `CREATE TABLE IF NOT EXISTS attendance_records (
+    `
+    CREATE TABLE IF NOT EXISTS attendance_records (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         date DATE NOT NULL,
@@ -24,7 +25,8 @@ export default async function seedAttendanceRecords() {
         total_hours TIME,
         FOREIGN KEY (user_id) references users(id),
         CONSTRAINT unique_user_date UNIQUE (user_id, date)
-      )`
+    )
+    `
   );
 
   const yesterday = subDays(new Date(), 1);
@@ -44,7 +46,7 @@ export default async function seedAttendanceRecords() {
       total_hours = TIMEDIFF(time_out, time_in)
     WHERE LOWER(u.username) = ? AND date = ?
     `,
-    ["13:00:00", "Ivan", formatToMonth(yesterday)]
+    ["18:00:00", "ivan", formatToMonth(yesterday)]
   );
 
   await connection.execute<ResultSetHeader>(

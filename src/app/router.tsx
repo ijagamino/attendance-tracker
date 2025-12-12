@@ -3,7 +3,11 @@ import DashboardPage from "../pages/dashboard/page";
 import DefaultLayout from "../layouts/default-layout";
 import RecordsPage from "../pages/records/page";
 import HomePage from "../pages/home/page";
-import { UserIdPage } from "@/pages/users/id/page";
+import UserIdPage from "@/pages/users/id/page";
+import LoginPage from "@/pages/login/page";
+import LoginLayout from "@/layouts/login-layout";
+import RegisterPage from "@/pages/register/page";
+import ProtectRoute from "@/components/protect-route";
 
 export default function AppRouter() {
   return (
@@ -11,7 +15,11 @@ export default function AppRouter() {
       <Routes>
         <Route
           path="/"
-          element={<DefaultLayout />}
+          element={
+            <ProtectRoute>
+              <DefaultLayout />
+            </ProtectRoute>
+          }
         >
           <Route
             index
@@ -35,6 +43,20 @@ export default function AppRouter() {
               element={<UserIdPage />}
             />
           </Route>
+        </Route>
+
+        <Route
+          path="/"
+          element={<LoginLayout />}
+        >
+          <Route
+            path="login"
+            element={<LoginPage />}
+          />
+          <Route
+            path="register"
+            element={<RegisterPage />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -19,6 +19,7 @@ export interface AttendanceRecord extends RowDataPacket {
 export interface User extends RowDataPacket {
   id: number;
   username: string;
+  password: string;
 }
 
 export interface DashboardUsersQuery extends RowDataPacket {

@@ -1,4 +1,6 @@
-const baseUrl = "http://localhost:3000/api";
+import { toast } from "sonner";
+
+const baseUrl = "http://localhost:3000/auth";
 
 export async function get(
   url: RequestInfo | URL,
@@ -35,11 +37,15 @@ export async function post(
     mode: "cors",
   });
 
+  const responseJson = await response.json();
+
   if (!response.ok) {
-    throw new Error(`Response status: ${response.status}`);
+    toast(`${responseJson.error}`, {
+      description: `Status code: ${response.status}`,
+    });
   }
 
-  return await response.json();
+  return await responseJson;
 }
 
 export async function patch(
