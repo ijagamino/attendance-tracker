@@ -6,7 +6,11 @@ import type {
   RowCount,
   User,
 } from "../db/types.ts";
-import type { ApiResponse, PaginationParams } from "./types.ts";
+import type {
+  ApiResponse,
+  AttendanceRecordResponse,
+  PaginationParams,
+} from "./types.ts";
 import { camelCaseRowFields, formatToMonth, titleCase } from "../lib/utils.ts";
 import type { Request } from "express";
 
@@ -57,11 +61,15 @@ attendanceRecordRoutes.get(
 
       const totalPage: number = Math.ceil(totalRows / limitNum);
 
-      const response: ApiResponse<AttendanceRecord[]> = {
-        data: camelCaseRowFields(rows) as AttendanceRecord[],
-        pagination: {
-          page: pageNum,
-          totalPage,
+      const response: ApiResponse<AttendanceRecordResponse> = {
+        data: {
+          attendanceRecords: {
+            items: camelCaseRowFields(rows) as AttendanceRecord[],
+            pagination: {
+              page: pageNum,
+              totalPage,
+            },
+          },
         },
       };
 

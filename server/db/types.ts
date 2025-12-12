@@ -9,6 +9,7 @@ export interface RowCount extends RowDataPacket {
 
 export interface AttendanceRecord extends RowDataPacket {
   id: number;
+  user_id: number;
   date: string;
   time_in: string;
   time_out?: string;
@@ -20,16 +21,12 @@ export interface User extends RowDataPacket {
   username: string;
 }
 
-export interface UserStats extends RowDataPacket {
-  total_progress: string;
+export interface DashboardUsersQuery extends RowDataPacket {
+  users: (User & { total_rendered_hours: string })[];
 }
 
-export interface Dashboard extends RowDataPacket {
-  users: { username: string; total_hours_rendered: string }[];
-}
-
-export interface DashboardStats extends RowDataPacket {
-  attendees: 5;
-  late_attendees: 3;
-  earliest: "08:30:00";
+export interface DashboardSummaryQuery extends RowDataPacket {
+  attendees: number;
+  late_attendees: number;
+  earliest: string;
 }

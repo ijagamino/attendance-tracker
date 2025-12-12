@@ -2,7 +2,11 @@ import { get } from "@/lib/apiFetch";
 import { formatDateToLocal } from "@/lib/date";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router";
-import type { AttendanceRecord, DataWithPagination } from "../../types";
+import type {
+  ApiResponse,
+  AttendanceRecord,
+  AttendanceRecordResponse,
+} from "@/types";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -38,15 +42,15 @@ export default function RecordsPage() {
     const params = new URLSearchParams(searchParams);
 
     get(`attendance-records?${params}`).then(
-      (response: DataWithPagination<AttendanceRecord[]>) => {
+      (response: ApiResponse<AttendanceRecordResponse>) => {
         setAttendanceRecords(
-          response.data.map((item) => ({
+          response.data.attendanceRecords.items.map((item) => ({
             ...item,
             date: formatDateToLocal(item.date, "MM-dd-yyyy"),
           }))
         );
-        setTotalPage(response.pagination?.totalPage);
-        setPage(response.pagination?.page);
+        setTotalPage(response.data.attendanceRecords.pagination.totalPage);
+        setPage(response.data.attendanceRecords.pagination.page);
       }
     );
   }, [searchParams]);

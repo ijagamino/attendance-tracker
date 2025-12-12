@@ -4,9 +4,9 @@ import { TypographyH2 } from "@/components/ui/typography";
 import { get } from "@/lib/apiFetch";
 import { formatDateToLocal } from "@/lib/date";
 import type {
+  ApiResponse,
   AttendanceRecord,
-  DataWithPagination,
-  RowsWithStats,
+  UserProfileResponse,
 } from "@/types";
 import AttendanceRecordTable from "@/pages/records/ui/table";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
@@ -24,7 +24,9 @@ export function UserIdPage() {
 
   const [page, setPage] = useState<number>(1);
   const [totalPage, setTotalPage] = useState<number>();
-  const [totalProgress, setTotalProgress] = useState<string>("");
+  const [totalRenderedHours, setTotalRenderedHours] = useState<
+    string | undefined
+  >("");
   const [username, setUsername] = useState<string | undefined>("");
 
   function handleParamChange(key: string, val: string) {
@@ -41,26 +43,22 @@ export function UserIdPage() {
     const params = new URLSearchParams(searchParams);
 
     get(`users/${id}/attendance-records?${params}`).then(
-      (
-        response: DataWithPagination<
-          RowsWithStats<AttendanceRecord[], { totalProgress: string }>
-        >
-      ) => {
+      (response: ApiResponse<UserProfileResponse>) => {
         setAttendanceRecords(
-          response.data.rows.map((item) => ({
+          response.data.attendanceRecords.items.map((item) => ({
             ...item,
             date: formatDateToLocal(item.date, "MM-dd-yyyy"),
           }))
         );
-        setUsername(response.data.rows[0].username);
-        setTotalProgress(response.data.stats.totalProgress);
-        setTotalPage(response.pagination?.totalPage);
-        setPage(response.pagination?.page);
+        setUsername(response.data.attendanceRecords.items[0].username);
+        setTotalRenderedHours(response.data.totalRenderedHours);
+        setTotalPage(response.data.attendanceRecords.pagination.totalPage);
+        setPage(response.data.attendanceRecords.pagination.page);
       }
     );
   }, [searchParams, id]);
 
-  const [hours, minutes, seconds] = totalProgress.split(":");
+  const [hours, minutes, seconds] = totalRenderedHours?.split(":") ?? [];
 
   return (
     <>
@@ -85,7 +83,6 @@ export function UserIdPage() {
           </CardContent>
         </Card>
       </div>
-      {/* <TypographyP></TypographyP> */}
 
       <AttendanceRecordTable attendanceRecords={attendanceRecords} />
 

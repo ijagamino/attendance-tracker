@@ -7,17 +7,13 @@ interface Pagination {
   page: number;
 }
 
-export interface Data<T> {
+export interface ApiResponse<T> {
   data: T;
 }
 
-export interface DataWithPagination<T> extends Data<T> {
+export interface Paginated<T> {
+  items: T[];
   pagination: Pagination;
-}
-
-export interface RowsWithStats<Rows, Stats> {
-  rows: Rows;
-  stats: Stats;
 }
 
 export interface User extends Entity {
@@ -34,13 +30,17 @@ export interface AttendanceRecord extends Entity {
   username?: string;
 }
 
-export interface DashboardRows {
-  id: string;
-  username: string;
-  totalRenderedHours: number;
+export interface AttendanceRecordResponse {
+  attendanceRecords: Paginated<AttendanceRecord>;
 }
 
-export interface DashboardStats {
+export interface UserProfileResponse {
+  attendanceRecords: Paginated<AttendanceRecord>;
+  totalRenderedHours: string;
+}
+
+export interface DashboardResponse {
+  users: (User & { totalRenderedHours: string })[];
   attendees: number;
   lateAttendees: number;
   earliest: string;

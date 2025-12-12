@@ -1,7 +1,7 @@
 import express from "express";
 import connection from "../db/db.ts";
-import type { AttendanceRecord, RowCount, UserStats } from "../db/types.ts";
-import type { ApiResponse, Object } from "./types.ts";
+import type { AttendanceRecord, RowCount, RowDataPacket } from "../db/types.ts";
+import type { ApiResponse, UserProfileResponse } from "./types.ts";
 import type { Request } from "express";
 import { camelCaseRowFields, formatToMonth } from "../lib/utils.ts";
 import { startOfMonth, endOfMonth } from "date-fns";
@@ -49,9 +49,11 @@ userRoutes.get(
 
       const today = new Date();
 
-      const [statRow] = await connection.execute<UserStats[]>(
+      const [totalRenderedHoursRow] = await connection.execute<
+        ({ total_rendered_hours: string } & RowDataPacket)[]
+      >(
         `
-      SELECT SEC_TO_TIME(SUM(TIME_TO_SEC(total_hours))) AS totalProgress
+      SELECT SEC_TO_TIME(SUM(TIME_TO_SEC(total_hours))) AS total_rendered_hours
       FROM attendance_records ar
         JOIN users u
         ON ar.user_id = u.id
@@ -66,19 +68,18 @@ userRoutes.get(
         ]
       );
 
-      const stats = statRow[0];
+      const totalRenderedHours = totalRenderedHoursRow[0].total_rendered_hours;
 
-      const response: ApiResponse<{
-        rows: AttendanceRecord[];
-        stats: Object;
-      }> = {
+      const response: ApiResponse<UserProfileResponse> = {
         data: {
-          rows: camelCaseRowFields(rows) as AttendanceRecord[],
-          stats,
-        },
-        pagination: {
-          page: pageNum,
-          totalPage,
+          attendanceRecords: {
+            items: camelCaseRowFields(rows) as AttendanceRecord[],
+            pagination: {
+              page: pageNum,
+              totalPage,
+            },
+          },
+          totalRenderedHours: totalRenderedHours,
         },
       };
 
