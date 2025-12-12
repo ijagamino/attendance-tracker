@@ -6,10 +6,12 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useAuth } from "./auth-provider";
 
 type NavItem = {
   title: string;
   href: string;
+  isAuth?: boolean;
 };
 
 const navItems: NavItem[] = [
@@ -25,23 +27,41 @@ const navItems: NavItem[] = [
     title: "Records",
     href: "/records",
   },
+  {
+    title: "Log In",
+    href: "/login",
+    isAuth: false,
+  },
+  {
+    title: "Log Out",
+    href: "/logout",
+    isAuth: true,
+  },
 ];
 
 export default function AppHeader() {
+  const { isAuth } = useAuth();
+
   return (
-    <header className="px-4 py-2 flex items-center justify-between border-b">
+    <header className="flex items-center justify-between px-4 py-2 border-b">
       <h6>Attendance Tracker System</h6>
 
       <div className="flex space-x-2">
         <NavigationMenu>
           <NavigationMenuList>
-            {navItems.map((navItem) => (
-              <NavigationMenuItem key={navItem.href}>
-                <NavigationMenuLink asChild>
-                  <NavLink to={navItem.href}>{navItem.title}</NavLink>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
+            {navItems
+              .filter((navItem) => {
+                if (navItem.isAuth === undefined) return true;
+
+                return navItem.isAuth === isAuth;
+              })
+              .map((navItem) => (
+                <NavigationMenuItem key={navItem.href}>
+                  <NavigationMenuLink asChild>
+                    <NavLink to={navItem.href}>{navItem.title}</NavLink>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
           </NavigationMenuList>
         </NavigationMenu>
         <ModeToggle />

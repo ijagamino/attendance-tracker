@@ -1,5 +1,5 @@
 import _ from "lodash";
-
+import bcrypt from "bcrypt";
 import type { RowDataPacket } from "mysql2";
 import { format } from "date-fns";
 
@@ -29,4 +29,14 @@ export function formatToMonth(date: Date) {
 
 export function titleCase(string: string) {
   return _.startCase(_.toLower(string));
+}
+
+export async function hash(data: string) {
+  const saltRounds = 10;
+
+  return await bcrypt.hash(data, saltRounds);
+}
+
+export async function compare(data: string, encrypted: string) {
+  return await bcrypt.compare(data, encrypted);
 }

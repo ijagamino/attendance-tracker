@@ -39,8 +39,12 @@ userRoutes.get(
 
       const [rows] = await connection.execute<AttendanceRecord[]>(sql, values);
 
-      const [countRow] = await connection.query<RowCount[]>(
-        "SELECT COUNT(id) as totalRows FROM attendance_records"
+      const [countRow] = await connection.execute<RowCount[]>(
+        `
+        SELECT COUNT(ar.id) as totalRows
+        FROM attendance_records ar JOIN users u ON ar.user_id = u.id
+        WHERE u.id = ?`,
+        values
       );
 
       const totalRows: number = countRow.length > 0 ? countRow[0].totalRows : 0;
