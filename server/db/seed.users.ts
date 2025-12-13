@@ -8,7 +8,7 @@ export default async function seedUsers() {
   await connection.query<ResultSetHeader>(
     `CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(255) NOT NULL,
+        username VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255)
     )`
   );
