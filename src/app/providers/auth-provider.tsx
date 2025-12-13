@@ -1,93 +1,38 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-  useEffect,
-} from 'react'
-import { useApiFetch } from '@/hooks/use-api-fetch.ts'
-import { apiClient } from '@/lib/api/api-client.ts'
+import { createContext, useContext, useState, ReactNode } from 'react'
 
 type AuthProviderProps = {
   children: ReactNode
 }
 
-export type AccessToken = string | null
+type AccessToken = string | null
 
 type AuthProviderState = {
   accessToken: AccessToken
-  setAccessToken: (token: AccessToken) => void
-  isLoading: boolean
-  isAuth: boolean
-  login: ({ username, password }: LoginRequestBody) => Promise<AccessToken>
-  logout: () => void
 }
 
-interface LoginRequestBody {
-  username: string
-  password: string
-}
+// const initialState: AuthProviderState = {
+//   isAuth: false,
+//   login: () => null,
+//   logout: () => null,
+// };
 
-const initialState: AuthProviderState = {
-  accessToken: null,
-  setAccessToken: () => {},
-  isLoading: true,
-  isAuth: false,
-  login: async () => null,
-  logout: async () => {},
-}
-
-const AuthProviderContext = createContext<AuthProviderState>(initialState)
+const AuthProviderContext = createContext<AuthProviderState | null>(null)
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const apiFetch = useApiFetch()
   const [accessToken, setAccessToken] = useState<AccessToken>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   const isAuth = !!accessToken
 
-  async function login({ username, password }: LoginRequestBody) {
-    const data: string = await apiFetch('auth/login', 'POST', {
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    })
-    setAccessToken(data)
-    return data
-  }
-
-  async function logout() {
+  function logout() {
     setAccessToken(null)
-    return await apiFetch('auth/logout', 'DELETE', {
+    fetch('auth/logout', {
+      method: 'DELETE',
       credentials: 'include',
     })
   }
 
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        const res = await apiClient('auth/refresh', 'POST')
-
-        if (!res.ok) return
-
-        const data = await res.json()
-        setAccessToken(data.accessToken)
-      } catch (err) {
-        console.error(err)
-        setAccessToken(null)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchToken()
-  }, [])
-
   return (
-    <AuthProviderContext.Provider
-      value={{ accessToken, setAccessToken, isLoading, isAuth, login, logout }}
-    >
+    <AuthProviderContext.Provider value={{ isAuth, login, logout }}>
       {children}
     </AuthProviderContext.Provider>
   )
@@ -97,7 +42,7 @@ export const useAuth = () => {
   const auth = useContext(AuthProviderContext)
 
   if (auth === undefined)
-    throw new Error('useAuth must be used within a AuthProvider')
+    throw new Error('useTheme must be used within a ThemeProvider')
 
   return auth
 }
