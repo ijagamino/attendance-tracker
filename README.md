@@ -46,11 +46,11 @@ The project is structured like so:
 ┃ ┃ ┣ 📜mode-toggle.tsx
 ┃ ┃ ┣ 📜pagination-buttons.tsx
 ┃ ┃ ┗ 📜theme-provider.tsx
+┃ ┣ 📂hooks
+┃ ┃ ┣ 📜use-api-fetch.tsx
 ┃ ┣ 📂layouts
 ┃ ┃ ┗ 📜default-layout.tsx
-┃ ┣ 📂lib // shared functions
-┃ ┃ ┣ 📜apiFetch.ts
-┃ ┃ ┣ 📜date.ts
+┃ ┣ 📂lib
 ┃ ┃ ┗ 📜utils.ts
 ┃ ┣ 📂pages
 ┃ ┃ ┣ 📂dashboard
@@ -70,8 +70,7 @@ The project is structured like so:
 ┃ ┃ ┃ ┃ ┃ ┗ 📜card.tsx
 ┃ ┃ ┃ ┃ ┗ 📜page.tsx
 ┃ ┣ 📜index.css
-┃ ┣ 📜main.tsx
-┃ ┗ 📜types.ts
+┃ ┗ 📜main.tsx
 ```
 
 #### ./src/app
@@ -126,15 +125,13 @@ Each directory such as `./src/pages/users` should have a structure of:
 ┃ ┃ ┣ 📜db.ts
 ┃ ┃ ┣ 📜seed.attendance-records.ts
 ┃ ┃ ┣ 📜seed.ts
-┃ ┃ ┣ 📜seed.users.ts
-┃ ┃ ┗ 📜types.ts
+┃ ┃ ┗ 📜seed.users.ts
 ┃ ┣ 📂lib
 ┃ ┃ ┗ 📜utils.ts
 ┃ ┣ 📂routes
 ┃ ┃ ┣ 📜attendance-records.ts
 ┃ ┃ ┣ 📜dashboard.ts
 ┃ ┃ ┣ 📜routes.ts
-┃ ┃ ┣ 📜types.ts
 ┃ ┃ ┗ 📜users.ts
 ┃ ┗ 📜index.ts
 ```
