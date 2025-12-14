@@ -1,27 +1,26 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { TypographyH1 } from "@/components/ui/typography";
-import { patch, post } from "@/lib/apiFetch";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { TypographyH1 } from '@/components/ui/typography'
+import { useApiFetch } from '@/hooks/use-api-fetch'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-handler.ts'
 
 export default function HomePage() {
-  async function submit(formData: FormData, type: "create" | "update") {
-    const { username } = { username: formData.get("username") };
-    if (type === "create") {
-      await post("attendance-records", { body: JSON.stringify({ username }) });
-    }
+  const apiFetch = useApiFetch()
 
-    if (type === "update") {
-      await patch("attendance-records", { body: JSON.stringify({ username }) });
+  async function submit(type: 'create' | 'update') {
+    try {
+      if (type === 'create') {
+        await apiFetch('attendance-records', 'POST')
+      } else {
+        await apiFetch('attendance-records', 'PATCH')
+      }
+
+      toast.success(`Attendance record ${type}d successfully`)
+    } catch (error) {
+      const errorMessage = getErrorMessage(error)
+      toast.error(errorMessage)
     }
-    return;
   }
 
   return (
@@ -36,35 +35,20 @@ export default function HomePage() {
         <hr />
 
         <form className="flex flex-col gap-2">
-          <CardContent>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="username">Name</Label>
-              <Input
-                id="username"
-                className="px-2 py-1 border-2 rounded border-teal-600/20 focus:border-teal-600 focus:outline-none"
-                name="username"
-                type="text"
-              />
-            </div>
-          </CardContent>
-
-          <CardFooter className="grid grid-cols-1 gap-2 md:grid-cols-2">
-            <Button
-              className="w-full"
-              formAction={(formData) => submit(formData, "create")}
-            >
+          <CardContent className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <Button className="w-full" formAction={() => submit('create')}>
               Time In
             </Button>
             <Button
               className="w-full"
               variant="secondary"
-              formAction={(formData) => submit(formData, "update")}
+              formAction={() => submit('update')}
             >
               Time Out
             </Button>
-          </CardFooter>
+          </CardContent>
         </form>
       </Card>
     </>
-  );
+  )
 }
