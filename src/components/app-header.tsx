@@ -1,46 +1,42 @@
-import { NavLink } from "react-router";
+import { NavLink } from 'react-router'
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-} from "@/components/ui/navigation-menu";
-import { ModeToggle } from "@/components/mode-toggle";
-import { useAuth } from "./auth-provider";
+} from '@/components/ui/navigation-menu'
+import { ModeToggle } from '@/components/mode-toggle'
+import { useAuth } from '@/app/providers/auth-provider'
+import { Button } from '@/components/ui/button.tsx'
 
 type NavItem = {
-  title: string;
-  href: string;
-  isAuth?: boolean;
-};
+  title: string
+  href: string
+  isAuth?: boolean
+}
 
 const navItems: NavItem[] = [
   {
-    title: "Home",
-    href: "/",
+    title: 'Home',
+    href: '/',
   },
   {
-    title: "Dashboard",
-    href: "/dashboard",
+    title: 'Dashboard',
+    href: '/dashboard',
   },
   {
-    title: "Records",
-    href: "/records",
+    title: 'Records',
+    href: '/records',
   },
   {
-    title: "Log In",
-    href: "/login",
+    title: 'Log In',
+    href: '/login',
     isAuth: false,
   },
-  {
-    title: "Log Out",
-    href: "/logout",
-    isAuth: true,
-  },
-];
+]
 
 export default function AppHeader() {
-  const { isAuth } = useAuth();
+  const { isAuth, logout } = useAuth()
 
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b">
@@ -51,9 +47,9 @@ export default function AppHeader() {
           <NavigationMenuList>
             {navItems
               .filter((navItem) => {
-                if (navItem.isAuth === undefined) return true;
+                if (navItem.isAuth === undefined) return true
 
-                return navItem.isAuth === isAuth;
+                return navItem.isAuth === isAuth
               })
               .map((navItem) => (
                 <NavigationMenuItem key={navItem.href}>
@@ -62,10 +58,24 @@ export default function AppHeader() {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
+
+            {isAuth && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Button
+                    onClick={() => {
+                      logout()
+                    }}
+                  >
+                    Log Out
+                  </Button>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
         <ModeToggle />
       </div>
     </header>
-  );
+  )
 }
