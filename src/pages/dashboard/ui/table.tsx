@@ -5,13 +5,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import type { DashboardResponse } from "@/types";
+} from '@/components/ui/table'
+import type { DashboardResponse } from 'shared/types/api'
 
 export default function DashboardUserTable({
   dashboardData,
 }: {
-  dashboardData?: DashboardResponse;
+  dashboardData?: DashboardResponse
 }) {
   return (
     <div className="rounded-md border">
@@ -33,5 +33,5 @@ export default function DashboardUserTable({
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

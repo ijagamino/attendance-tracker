@@ -1,12 +1,12 @@
-import { formatToMonth } from "../lib/utils.ts";
-import connection from "./db.ts";
-import type { ResultSetHeader } from "./types.ts";
-import { subDays } from "date-fns";
+import { formatToMonth } from '../lib/utils.ts'
+import connection from './db.ts'
+import type { ResultSetHeader } from 'shared/types/database'
+import { subDays } from 'date-fns'
 
 export default async function seedAttendanceRecords() {
   await connection.query<ResultSetHeader>(
-    "DROP TABLE IF EXISTS attendance_records"
-  );
+    'DROP TABLE IF EXISTS attendance_records'
+  )
 
   await connection.query<ResultSetHeader>(
     `
@@ -27,16 +27,16 @@ export default async function seedAttendanceRecords() {
         CONSTRAINT unique_user_date UNIQUE (user_id, date)
     )
     `
-  );
+  )
 
-  const yesterday = subDays(new Date(), 1);
+  const yesterday = subDays(new Date(), 1)
 
-  const today = new Date();
+  const today = new Date()
 
   await connection.execute<ResultSetHeader>(
     `INSERT INTO attendance_records (user_id, date, time_in) VALUES (?, ?, ?)`,
-    [1, yesterday, "09:00:00"]
-  );
+    [1, yesterday, '09:00:00']
+  )
 
   await connection.execute<ResultSetHeader>(
     `
@@ -46,18 +46,18 @@ export default async function seedAttendanceRecords() {
       total_hours = TIMEDIFF(time_out, time_in)
     WHERE LOWER(u.username) = ? AND date = ?
     `,
-    ["18:00:00", "ivan", formatToMonth(yesterday)]
-  );
+    ['18:00:00', 'ivan', formatToMonth(yesterday)]
+  )
 
   await connection.execute<ResultSetHeader>(
     `INSERT INTO attendance_records (user_id, date, time_in) VALUES (?, ?, ?)`,
-    [1, today, "09:00:00"]
-  );
+    [1, today, '09:00:00']
+  )
 
   await connection.execute<ResultSetHeader>(
     `INSERT INTO attendance_records (user_id, date, time_in) VALUES (?, ?, ?)`,
-    [2, today, "09:00:00"]
-  );
+    [2, today, '09:00:00']
+  )
 
   await connection.execute<ResultSetHeader>(
     `
@@ -67,6 +67,6 @@ export default async function seedAttendanceRecords() {
       total_hours = TIMEDIFF(time_out, time_in)
     WHERE LOWER(u.username) = ? AND DATE = ?
     `,
-    ["15:00:00", "EDWARD", formatToMonth(today)]
-  );
+    ['15:00:00', 'EDWARD', formatToMonth(today)]
+  )
 }

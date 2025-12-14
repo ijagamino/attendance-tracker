@@ -1,59 +1,54 @@
-import { get } from "@/lib/apiFetch";
-import { formatDateToLocal } from "@/lib/date";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useApiFetch } from '@/hooks/use-api-fetch'
+import { formatDateToLocal } from '@/lib/utils'
+import { useEffect, useState } from 'react'
 import type {
   ApiResponse,
   AttendanceRecord,
   AttendanceRecordResponse,
-} from "@/types";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
-import DatePicker from "@/components/date-picker";
-import AttendanceRecordTable from "./ui/table";
-import { TypographyH1 } from "@/components/ui/typography";
-import PaginationButtons from "@/components/pagination-buttons";
+} from 'shared/types/api'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { format } from 'date-fns'
+import DatePicker from '@/components/date-picker'
+import AttendanceRecordTable from './ui/table'
+import { TypographyH1 } from '@/components/ui/typography'
+import PaginationButtons from '@/components/pagination-buttons'
+import useQueryParam from '@/hooks/use-query-param'
 
 export default function RecordsPage() {
-  const [searchParams, setSearchParams] = useSearchParams({
-    name: "",
-    date: "",
-    page: "1",
-  });
+  const apiFetch = useApiFetch()
+
+  const { searchParams, setParam } = useQueryParam({
+    name: '',
+    date: '',
+    page: '1',
+  })
 
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
-  >([]);
+  >([])
 
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [page, setPage] = useState<number>(1);
-  const [totalPage, setTotalPage] = useState<number>();
-
-  function handleParamChange(key: string, val: string) {
-    setSearchParams((prevParams) => {
-      const newParams = new URLSearchParams(prevParams);
-      newParams.set(key, val);
-      return newParams;
-    });
-  }
+  const [date, setDate] = useState<Date | undefined>(undefined)
+  const [page, setPage] = useState<number>(1)
+  const [totalPage, setTotalPage] = useState<number>()
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams)
 
-    get(`attendance-records?${params}`).then(
-      (response: ApiResponse<AttendanceRecordResponse>) => {
-        setAttendanceRecords(
-          response.data.attendanceRecords.items.map((item) => ({
-            ...item,
-            date: formatDateToLocal(item.date, "MM-dd-yyyy"),
-          }))
-        );
-        setTotalPage(response.data.attendanceRecords.pagination.totalPage);
-        setPage(response.data.attendanceRecords.pagination.page);
-      }
-    );
-  }, [searchParams]);
+    apiFetch<ApiResponse<AttendanceRecordResponse>>(
+      `attendance-records?${params}`,
+      'GET'
+    ).then((response) => {
+      setAttendanceRecords(
+        response.data.attendanceRecords.items.map((item) => ({
+          ...item,
+          date: formatDateToLocal(item.date, 'MM-dd-yyyy'),
+        }))
+      )
+      setTotalPage(response.data.attendanceRecords.pagination.totalPage)
+      setPage(response.data.attendanceRecords.pagination.page)
+    })
+  }, [searchParams, apiFetch])
 
   return (
     <>
@@ -68,7 +63,7 @@ export default function RecordsPage() {
             id="name"
             placeholder="Search by name..."
             onChange={(event) => {
-              handleParamChange("name", event.target.value);
+              setParam('name', event.target.value)
             }}
           />
         </div>
@@ -78,9 +73,9 @@ export default function RecordsPage() {
           <DatePicker
             date={date}
             onSelect={(selectedDate: Date | undefined) => {
-              setDate(selectedDate);
+              setDate(selectedDate)
               if (selectedDate) {
-                handleParamChange("date", format(selectedDate, "yyyy-MM-dd"));
+                setParam('date', format(selectedDate, 'yyyy-MM-dd'))
               }
             }}
           />
@@ -93,10 +88,10 @@ export default function RecordsPage() {
         page={page}
         totalPage={totalPage}
         onPageChange={(newPage) => {
-          setPage(newPage);
-          handleParamChange("page", newPage.toString());
+          setPage(newPage)
+          setParam('page', newPage.toString())
         }}
       />
     </>
-  );
+  )
 }

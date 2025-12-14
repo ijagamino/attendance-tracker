@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router";
-import type { AttendanceRecord } from "../../../types";
+import { useNavigate } from 'react-router'
+import type { AttendanceRecord } from 'shared/types/api'
 import {
   Table,
   TableBody,
@@ -7,14 +7,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 
 export default function AttendanceRecordTable({
   attendanceRecords,
 }: {
-  attendanceRecords: AttendanceRecord[];
+  attendanceRecords: AttendanceRecord[]
 }) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <>
@@ -48,5 +48,5 @@ export default function AttendanceRecordTable({
         </Table>
       </div>
     </>
-  );
+  )
 }

@@ -1,29 +1,33 @@
-import express from "express";
-import connection from "../db/db.ts";
-import type { AttendanceRecord, RowCount, RowDataPacket } from "../db/types.ts";
-import type { ApiResponse, UserProfileResponse } from "./types.ts";
-import type { Request } from "express";
-import { camelCaseRowFields, formatToMonth } from "../lib/utils.ts";
-import { startOfMonth, endOfMonth } from "date-fns";
+import express from 'express'
+import connection from '../db/db.ts'
+import type {
+  AttendanceRecord,
+  RowCount,
+  RowDataPacket,
+} from 'shared/types/database'
+import type { ApiResponse, UserProfileResponse } from 'shared/types/api'
+import type { Request } from 'express'
+import { camelCaseRowFields, formatToMonth } from '../lib/utils.ts'
+import { startOfMonth, endOfMonth } from 'date-fns'
 
-const userRoutes = express.Router();
+const userRoutes = express.Router()
 
 interface Params {
-  page: string;
-  limit: string;
+  page: string
+  limit: string
 }
 
 userRoutes.get(
-  "/:id/attendance-records",
+  '/:id/attendance-records',
   async (req: Request<unknown, unknown, unknown, Params>, res) => {
-    const { page = "1", limit = "5" } = req.query;
+    const { page = '1', limit = '5' } = req.query
 
-    const pageNum: number = Number(page);
-    const limitNum: number = Number(limit);
+    const pageNum: number = Number(page)
+    const limitNum: number = Number(limit)
     const offset: number =
-      pageNum - 1 > 0 ? Math.ceil((pageNum - 1) * limitNum) : 0;
+      pageNum - 1 > 0 ? Math.ceil((pageNum - 1) * limitNum) : 0
 
-    const { id } = req.params as { id: string };
+    const { id } = req.params as { id: string }
 
     try {
       const sql = `
@@ -33,11 +37,11 @@ userRoutes.get(
     WHERE u.id = ?
     LIMIT ${limitNum}
     OFFSET ${offset}
-    `;
+    `
 
-      const values: string[] = [id];
+      const values: string[] = [id]
 
-      const [rows] = await connection.execute<AttendanceRecord[]>(sql, values);
+      const [rows] = await connection.execute<AttendanceRecord[]>(sql, values)
 
       const [countRow] = await connection.execute<RowCount[]>(
         `
@@ -45,13 +49,13 @@ userRoutes.get(
         FROM attendance_records ar JOIN users u ON ar.user_id = u.id
         WHERE u.id = ?`,
         values
-      );
+      )
 
-      const totalRows: number = countRow.length > 0 ? countRow[0].totalRows : 0;
+      const totalRows: number = countRow.length > 0 ? countRow[0].totalRows : 0
 
-      const totalPage: number = Math.ceil(totalRows / limitNum);
+      const totalPage: number = Math.ceil(totalRows / limitNum)
 
-      const today = new Date();
+      const today = new Date()
 
       const [totalRenderedHoursRow] = await connection.execute<
         ({ total_rendered_hours: string } & RowDataPacket)[]
@@ -70,14 +74,14 @@ userRoutes.get(
           formatToMonth(startOfMonth(today)),
           formatToMonth(endOfMonth(today)),
         ]
-      );
+      )
 
-      const totalRenderedHours = totalRenderedHoursRow[0].total_rendered_hours;
+      const totalRenderedHours = totalRenderedHoursRow[0].total_rendered_hours
 
       const response: ApiResponse<UserProfileResponse> = {
         data: {
           attendanceRecords: {
-            items: camelCaseRowFields(rows) as AttendanceRecord[],
+            items: camelCaseRowFields(rows),
             pagination: {
               page: pageNum,
               totalPage,
@@ -85,14 +89,14 @@ userRoutes.get(
           },
           totalRenderedHours: totalRenderedHours,
         },
-      };
+      }
 
-      res.json(response);
+      res.json(response)
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Database error" });
+      console.error(error)
+      res.status(500).json({ error: 'Database error' })
     }
   }
-);
+)
 
-export default userRoutes;
+export default userRoutes

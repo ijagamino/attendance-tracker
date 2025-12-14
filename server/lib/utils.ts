@@ -1,42 +1,40 @@
-import _ from "lodash";
-import bcrypt from "bcrypt";
-import type { RowDataPacket } from "mysql2";
-import { format } from "date-fns";
+import _ from 'lodash'
+import bcrypt from 'bcrypt'
+import type { RowDataPacket } from 'mysql2'
+import { format } from 'date-fns'
 
-export function camelCaseObjectKeys(
-  object: Record<string, string | number | boolean>
-) {
-  let key;
-  const keys = Object.keys(object);
-  const n = keys.length;
-  const newObject: Record<string, string | number | boolean> = {};
+export function camelCaseObjectKeys(object: Record<string, unknown>) {
+  let key
+  const keys = Object.keys(object)
+  const n = keys.length
+  const newObject: Record<string, unknown> = {}
 
   for (let i = 0; i < n; i++) {
-    key = keys[i];
-    newObject[_.camelCase(key)] = object[key];
+    key = keys[i]
+    newObject[_.camelCase(key)] = object[key]
   }
 
-  return newObject;
+  return newObject
 }
 
-export function camelCaseRowFields<T extends RowDataPacket>(rows: T[]) {
-  return rows.map((row) => camelCaseObjectKeys(row));
+export function camelCaseRowFields<T>(rows: RowDataPacket[]) {
+  return rows.map((row) => camelCaseObjectKeys(row)) as T[]
 }
 
 export function formatToMonth(date: Date) {
-  return format(date, "yyyy-MM-dd");
+  return format(date, 'yyyy-MM-dd')
 }
 
 export function titleCase(string: string) {
-  return _.startCase(_.toLower(string));
+  return _.startCase(_.toLower(string))
 }
 
 export async function hash(data: string) {
-  const saltRounds = 10;
+  const saltRounds = 10
 
-  return await bcrypt.hash(data, saltRounds);
+  return await bcrypt.hash(data, saltRounds)
 }
 
 export async function compare(data: string, encrypted: string) {
-  return await bcrypt.compare(data, encrypted);
+  return await bcrypt.compare(data, encrypted)
 }

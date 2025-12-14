@@ -1,20 +1,23 @@
-import { get } from "@/lib/apiFetch";
-import type { DashboardResponse, ApiResponse } from "@/types";
-import { useEffect, useState } from "react";
-import DashboardCard from "./ui/card";
-import { TypographyH1, TypographyH2 } from "@/components/ui/typography";
-import DashboardUserTable from "./ui/table";
+import { useApiFetch } from '@/hooks/use-api-fetch'
+import type { DashboardResponse, ApiResponse } from 'shared/types/api'
+import { useEffect, useState } from 'react'
+import DashboardCard from './ui/card'
+import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
+import DashboardUserTable from './ui/table'
 
 export default function DashboardPage() {
-  const [dashboardData, setDashboardData] = useState<DashboardResponse>();
+  const apiFetch = useApiFetch()
+  const [dashboardData, setDashboardData] = useState<DashboardResponse>()
 
   useEffect(() => {
-    get("dashboard").then((response: ApiResponse<DashboardResponse>) => {
-      setDashboardData(response.data);
-    });
-  }, []);
+    apiFetch<ApiResponse<DashboardResponse>>('dashboard', 'GET').then(
+      (response) => {
+        setDashboardData(response.data)
+      }
+    )
+  }, [apiFetch])
 
-  const [hours, minutes] = dashboardData?.earliest?.split(":") ?? [];
+  const [hours, minutes] = dashboardData?.earliest?.split(':') ?? []
 
   return (
     <>
@@ -50,5 +53,5 @@ export default function DashboardPage() {
 
       <DashboardUserTable dashboardData={dashboardData} />
     </>
-  );
+  )
 }

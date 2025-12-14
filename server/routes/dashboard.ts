@@ -1,18 +1,17 @@
-import express from "express";
-import connection from "../db/db.ts";
+import express from 'express'
+import connection from '../db/db.ts'
 import type {
   DashboardUsersQuery,
   DashboardSummaryQuery,
-  User,
-} from "../db/types.ts";
-import type { ApiResponse, DashboardResponse } from "./types.ts";
-import { camelCaseRowFields, formatToMonth } from "../lib/utils.ts";
+} from 'shared/types/database'
+import type { ApiResponse, DashboardResponse } from 'shared/types/api.ts'
+import { camelCaseRowFields, formatToMonth } from '../lib/utils.ts'
 
-const dashboardRoutes = express.Router();
+const dashboardRoutes = express.Router()
 
-dashboardRoutes.get("/", async (req, res) => {
+dashboardRoutes.get('/', async (req, res) => {
   try {
-    const [rows] = await connection.query<DashboardUsersQuery[]>(
+    const [users] = await connection.query<DashboardUsersQuery[]>(
       `
       SELECT
       u.*,
@@ -21,9 +20,9 @@ dashboardRoutes.get("/", async (req, res) => {
       JOIN users u ON ar.user_id = u.id
       GROUP BY ar.user_id
       `
-    );
+    )
 
-    const today = new Date();
+    const today = new Date()
     const [statsRow] = await connection.execute<DashboardSummaryQuery[]>(
       `
       SELECT
@@ -34,26 +33,24 @@ dashboardRoutes.get("/", async (req, res) => {
       WHERE ar.date = ?
       `,
       [formatToMonth(today)]
-    );
+    )
 
-    const stats = statsRow[0];
+    const stats = statsRow[0]
 
     const response: ApiResponse<DashboardResponse> = {
       data: {
-        users: camelCaseRowFields(rows) as (User & {
-          totalRenderedHours: string;
-        })[],
+        users: camelCaseRowFields(users),
         attendees: stats.attendees,
         lateAttendees: stats.late_attendees,
         earliest: stats.earliest,
       },
-    };
+    }
 
-    return res.status(200).json(response);
+    return res.status(200).json(response)
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Database error" });
+    console.error(error)
+    return res.status(500).json({ error: 'Database error' })
   }
-});
+})
 
-export default dashboardRoutes;
+export default dashboardRoutes
