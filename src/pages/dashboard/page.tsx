@@ -4,18 +4,31 @@ import { useEffect, useState } from 'react'
 import DashboardCard from './ui/card'
 import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
 import DashboardUserTable from './ui/table'
+import useQueryParam from '@/hooks/use-query-param.ts'
+import PaginationButtons from '@/components/pagination-buttons.tsx'
 
 export default function DashboardPage() {
-  const apiFetch = useApiFetch()
   const [dashboardData, setDashboardData] = useState<DashboardResponse>()
+  const [page, setPage] = useState<number>(1)
+  const [totalPage, setTotalPage] = useState<number>()
+
+  const apiFetch = useApiFetch()
+
+  const { searchParams, setParam } = useQueryParam({
+    page: '1',
+  })
 
   useEffect(() => {
-    apiFetch<ApiResponse<DashboardResponse>>('dashboard', 'GET').then(
+    const params = new URLSearchParams(searchParams)
+
+    apiFetch<ApiResponse<DashboardResponse>>(`dashboard?${params}`, 'GET').then(
       (response) => {
         setDashboardData(response.data)
+        setTotalPage(response.data.users.pagination.totalPage)
+        setPage(response.data.users.pagination.page)
       }
     )
-  }, [apiFetch])
+  }, [apiFetch, searchParams])
 
   const [hours, minutes] = dashboardData?.earliest?.split(':') ?? []
 
@@ -52,6 +65,15 @@ export default function DashboardPage() {
       <TypographyH2>Summary per user</TypographyH2>
 
       <DashboardUserTable dashboardData={dashboardData} />
+
+      <PaginationButtons
+        page={page}
+        totalPage={totalPage}
+        onPageChange={(newPage) => {
+          setPage(newPage)
+          setParam('page', newPage.toString())
+        }}
+      />
     </>
   )
 }

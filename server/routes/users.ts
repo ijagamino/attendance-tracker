@@ -5,55 +5,66 @@ import type {
   RowCount,
   RowDataPacket,
 } from 'shared/types/database'
-import type { ApiResponse, UserProfileResponse } from 'shared/types/api'
-import type { Request } from 'express'
+import type {
+  ApiResponse,
+  PaginationParams,
+  ResponseLocals,
+  UserProfileResponse,
+} from 'shared/types/api'
+import type { Request, Response } from 'express'
 import { camelCaseRowFields, formatToMonth } from '../lib/utils.ts'
 import { startOfMonth, endOfMonth } from 'date-fns'
+import pagination from '../lib/pagination.ts'
 
 const userRoutes = express.Router()
 
-interface Params {
-  page: string
-  limit: string
+interface UserParam {
+  id: number
 }
 
 userRoutes.get(
   '/:id/attendance-records',
-  async (req: Request<unknown, unknown, unknown, Params>, res) => {
+  async (
+    req: Request<UserParam, unknown, unknown, PaginationParams>,
+    res: Response<unknown, ResponseLocals>
+  ) => {
+    const id = req.params.id
     const { page = '1', limit = '5' } = req.query
+    const { id: userId, role: userRole } = res.locals.user
 
-    const pageNum: number = Number(page)
-    const limitNum: number = Number(limit)
-    const offset: number =
-      pageNum - 1 > 0 ? Math.ceil((pageNum - 1) * limitNum) : 0
-
-    const { id } = req.params as { id: string }
+    if (userRole !== 'admin' && id !== userId)
+      return res.status(403).json('Insufficient permissions')
 
     try {
-      const sql = `
-    SELECT * FROM users u 
-      JOIN attendance_records ar
-      ON u.id = ar.user_id 
-    WHERE u.id = ?
-    LIMIT ${limitNum}
-    OFFSET ${offset}
-    `
+      const values: number[] = [id]
 
-      const values: string[] = [id]
-
-      const [rows] = await connection.execute<AttendanceRecord[]>(sql, values)
-
-      const [countRow] = await connection.execute<RowCount[]>(
+      const [attendanceRecordsCount] = await connection.execute<RowCount[]>(
         `
-        SELECT COUNT(ar.id) as totalRows
+        SELECT COUNT(ar.id) as count
         FROM attendance_records ar JOIN users u ON ar.user_id = u.id
         WHERE u.id = ?`,
         values
       )
 
-      const totalRows: number = countRow.length > 0 ? countRow[0].totalRows : 0
+      const { pageNum, limitNum, offset, totalPage } = pagination(
+        page,
+        limit,
+        attendanceRecordsCount
+      )
 
-      const totalPage: number = Math.ceil(totalRows / limitNum)
+      const sql = `
+      SELECT * FROM users u 
+        JOIN attendance_records ar
+        ON u.id = ar.user_id 
+      WHERE u.id = ?
+      LIMIT ${limitNum}
+      OFFSET ${offset}
+      `
+
+      const [attendanceRecords] = await connection.execute<AttendanceRecord[]>(
+        sql,
+        values
+      )
 
       const today = new Date()
 
@@ -81,7 +92,7 @@ userRoutes.get(
       const response: ApiResponse<UserProfileResponse> = {
         data: {
           attendanceRecords: {
-            items: camelCaseRowFields(rows),
+            items: camelCaseRowFields(attendanceRecords),
             pagination: {
               page: pageNum,
               totalPage,
