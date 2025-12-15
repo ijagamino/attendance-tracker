@@ -1,3 +1,4 @@
+import type { Response } from 'express'
 import express from 'express'
 import connection from '../db/db.ts'
 import type {
@@ -9,9 +10,11 @@ import type {
   ApiResponse,
   AttendanceRecordResponse,
   PaginationParams,
+  ResponseLocals,
 } from 'shared/types/api'
 import { camelCaseRowFields, formatToMonth } from '../lib/utils.ts'
 import type { Request } from 'express'
+import pagination from '../lib/pagination.ts'
 
 const attendanceRecordRoutes = express.Router()
 
@@ -24,24 +27,36 @@ attendanceRecordRoutes.get(
   '/',
   async (
     req: Request<unknown, unknown, unknown, AttendanceRecordParams>,
-    res
+    res: Response<unknown, ResponseLocals>
   ) => {
-    const { name = '', date = '', page = '1', limit = '5' } = req.query
-
-    const pageNum: number = Number(page)
-    const limitNum: number = Number(limit)
-    const offset: number =
-      pageNum - 1 > 0 ? Math.ceil((pageNum - 1) * limitNum) : 0
+    const { page = '1', limit = '5', name = '', date = '' } = req.query
+    const userRole = res.locals.user.role
+    const userId = res.locals.user.id
 
     try {
+      const [attendanceRecordCount] = await connection.query<RowCount[]>(
+        'SELECT COUNT(id) as count FROM attendance_records'
+      )
+
+      const { pageNum, limitNum, offset, totalPage } = pagination(
+        page,
+        limit,
+        attendanceRecordCount
+      )
+
       let sql = `
-    SELECT ar.*, u.username FROM attendance_records ar
-      JOIN users u
-      ON ar.user_id = u.id
-    WHERE LOWER(u.username) LIKE LOWER(?)
-    `
+      SELECT ar.*, u.username FROM attendance_records ar
+        JOIN users u
+        ON ar.user_id = u.id
+      WHERE LOWER(u.username) LIKE LOWER(?)
+      `
 
       const values: (string | number)[] = [`%${name}%`]
+
+      if (userRole !== 'admin') {
+        sql += ` AND ar.user_id = ?`
+        values.push(userId)
+      }
 
       if (date) {
         sql += ` AND date = ?`
@@ -50,20 +65,15 @@ attendanceRecordRoutes.get(
 
       sql += ` LIMIT ${limitNum} OFFSET ${offset}`
 
-      const [rows] = await connection.execute<AttendanceRecord[]>(sql, values)
-
-      const [countRow] = await connection.query<RowCount[]>(
-        'SELECT COUNT(id) as totalRows FROM attendance_records'
+      const [attendanceRecords] = await connection.execute<AttendanceRecord[]>(
+        sql,
+        values
       )
-
-      const totalRows: number = countRow.length > 0 ? countRow[0].totalRows : 0
-
-      const totalPage: number = Math.ceil(totalRows / limitNum)
 
       const response: ApiResponse<AttendanceRecordResponse> = {
         data: {
           attendanceRecords: {
-            items: camelCaseRowFields(rows),
+            items: camelCaseRowFields(attendanceRecords),
             pagination: {
               page: pageNum,
               totalPage,
@@ -80,55 +90,60 @@ attendanceRecordRoutes.get(
   }
 )
 
-attendanceRecordRoutes.post('/', async (req, res) => {
-  const userId = req.userId
+attendanceRecordRoutes.post(
+  '/',
+  async (_req, res: Response<unknown, ResponseLocals>) => {
+    const userId = res.locals.user.id
 
-  try {
-    const today = new Date()
+    try {
+      const today = new Date()
 
-    const sql = `INSERT INTO attendance_records(user_id, date, time_in) VALUES (?, ?, ?)`
-    const values: (number | Date)[] = [userId, today, today]
+      const sql = `INSERT INTO attendance_records(user_id, date, time_in) VALUES (?, ?, ?)`
+      const values: (number | Date)[] = [userId, today, today]
 
-    const [result] = await connection.execute<ResultSetHeader>(sql, values)
+      const [result] = await connection.execute<ResultSetHeader>(sql, values)
 
-    return res.status(200).json(result)
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({ error: 'Database error' })
+      return res.status(200).json(result)
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ error: 'Database error' })
+    }
   }
-})
+)
 
-attendanceRecordRoutes.patch('/', async (req, res) => {
-  const userId = req.userId
+attendanceRecordRoutes.patch(
+  '/',
+  async (_req, res: Response<unknown, ResponseLocals>) => {
+    const userId = res.locals.user.id
 
-  try {
-    const today = new Date()
+    try {
+      const today = new Date()
 
-    const sql = `
+      const sql = `
       UPDATE attendance_records 
       SET
-        time_out = ?,
-        total_hours = TIMEDIFF(time_out, time_in)
+        time_out = ?
       WHERE
         user_id = ?
         AND
         DATE = ?
       `
-    const values = [today, userId, formatToMonth(today)]
+      const values = [today, userId, formatToMonth(today)]
 
-    const [result] = await connection.execute<ResultSetHeader>(sql, values)
+      const [result] = await connection.execute<ResultSetHeader>(sql, values)
 
-    if (result.affectedRows === 0) {
-      return res
-        .status(404)
-        .json({ error: { message: 'You have not timed in today.' } })
+      if (result.affectedRows === 0) {
+        return res
+          .status(404)
+          .json({ error: { message: 'You have not timed in today.' } })
+      }
+
+      return res.json(result)
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ error: 'Database error' })
     }
-
-    return res.json(result)
-  } catch (error) {
-    console.error(error)
-    return res.status(500).json({ error: 'Database error' })
   }
-})
+)
 
 export default attendanceRecordRoutes

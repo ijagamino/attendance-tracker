@@ -4,14 +4,14 @@ import connection from '../db/db.ts'
 import type { User } from 'shared/types/database'
 import { compare } from '../lib/utils.ts'
 import jwt from 'jsonwebtoken'
-import type { AuthPayload } from 'shared/types/api.ts'
+import type {
+  LoginResponse,
+  ApiResponse,
+  AuthPayload,
+  LoginRequestBody,
+} from 'shared/types/api'
 
 const authRoutes = express.Router()
-
-interface LoginRequestBody {
-  username: string
-  password: string
-}
 
 authRoutes.post(
   '/login',
@@ -38,7 +38,7 @@ authRoutes.post(
 
       const isMatched = await compare(password, user.password)
 
-      if (!user.username || isMatched === false) {
+      if (!user.username || !isMatched) {
         return res
           .status(400)
           .json({ error: { message: 'Invalid credentials' } })
@@ -47,7 +47,7 @@ authRoutes.post(
       const authPayload: AuthPayload = {
         user: {
           id: user.id,
-          username: user.username,
+          role: user.role,
         },
       }
 
@@ -66,7 +66,17 @@ authRoutes.post(
         maxAge: 7 * 24 * 60 * 60 * 1000,
       })
 
-      return res.status(200).json(accessToken)
+      const response: ApiResponse<LoginResponse> = {
+        data: {
+          accessToken,
+          user: {
+            id: user.id,
+            role: user.role,
+          },
+        },
+      }
+
+      return res.status(200).json(response)
     } catch (error) {
       console.error(error)
       return res.status(500).json({ error: 'Database error' })
@@ -81,18 +91,28 @@ authRoutes.post('/refresh', async (req: Request, res: Response) => {
     return res.status(401).json({ error: { message: 'No refresh token' } })
 
   try {
-    const tokenPayload = jwt.verify(refreshToken, 'jwt-refresh')
+    const authPayload = jwt.verify(refreshToken, 'jwt-refresh') as AuthPayload
 
-    const accessToken = jwt.sign(tokenPayload, 'jwt-access')
+    const accessToken = jwt.sign(authPayload, 'jwt-access')
 
-    return res.json({ accessToken })
+    const response: ApiResponse<LoginResponse> = {
+      data: {
+        accessToken,
+        user: {
+          id: authPayload.user.id,
+          role: authPayload.user.role,
+        },
+      },
+    }
+
+    return res.json(response)
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Database error' })
   }
 })
 
-authRoutes.delete('/logout', async (req: Request, res: Response) => {
+authRoutes.delete('/logout', async (_req, res: Response) => {
   try {
     res.clearCookie('refreshToken', {
       httpOnly: true,
