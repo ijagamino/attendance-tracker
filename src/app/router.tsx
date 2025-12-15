@@ -23,7 +23,14 @@ export default function AppRouter() {
           }
         >
           <Route index element={<HomePage />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+          <Route
+            path="dashboard"
+            element={
+              <ProtectRoute allowedRole="admin">
+                <DashboardPage />
+              </ProtectRoute>
+            }
+          />
 
           <Route path="records">
             <Route index element={<RecordsPage />} />

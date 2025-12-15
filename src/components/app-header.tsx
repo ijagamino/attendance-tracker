@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router'
+import { NavLink, useNavigate } from 'react-router'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -8,35 +8,38 @@ import {
 import { ModeToggle } from '@/components/mode-toggle'
 import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button.tsx'
+import type { UserRole } from 'shared/types/api'
+import { LogIn, LogOut } from 'lucide-react'
 
 type NavItem = {
   title: string
   href: string
-  isAuth?: boolean
+  isAuth: boolean
+  role?: UserRole
 }
 
 const navItems: NavItem[] = [
   {
     title: 'Home',
     href: '/',
+    isAuth: true,
   },
   {
     title: 'Dashboard',
     href: '/dashboard',
+    isAuth: true,
+    role: 'admin',
   },
   {
     title: 'Records',
     href: '/records',
-  },
-  {
-    title: 'Log In',
-    href: '/login',
-    isAuth: false,
+    isAuth: true,
   },
 ]
 
 export default function AppHeader() {
-  const { isAuth, logout } = useAuth()
+  const { isAuth, userRole, logout } = useAuth()
+  const navigate = useNavigate()
 
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b">
@@ -47,7 +50,7 @@ export default function AppHeader() {
           <NavigationMenuList>
             {navItems
               .filter((navItem) => {
-                if (navItem.isAuth === undefined) return true
+                if (navItem.role) return navItem.role === userRole
 
                 return navItem.isAuth === isAuth
               })
@@ -58,22 +61,28 @@ export default function AppHeader() {
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               ))}
-
-            {isAuth && (
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Button
-                    onClick={() => {
-                      logout()
-                    }}
-                  >
-                    Log Out
-                  </Button>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            )}
           </NavigationMenuList>
         </NavigationMenu>
+
+        {isAuth ? (
+          <Button
+            onClick={() => {
+              logout()
+            }}
+          >
+            <LogOut />
+            Log out
+          </Button>
+        ) : (
+          <Button
+            onClick={() => {
+              navigate('/login')
+            }}
+          >
+            <LogIn />
+            Log in
+          </Button>
+        )}
         <ModeToggle />
       </div>
     </header>

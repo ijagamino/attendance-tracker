@@ -10,7 +10,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
-import { ApiError } from '@/lib/api/api-error.ts'
 import { useAuth } from '@/app/providers/auth-provider.tsx'
 import { useNavigate } from 'react-router'
 import { type FormEvent, useState } from 'react'
@@ -20,6 +19,7 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group.tsx'
 import { Eye, EyeOff } from 'lucide-react'
+import { getErrorMessage } from '@/lib/error-handler.ts'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -34,17 +34,13 @@ export default function LoginPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    console.log(e)
 
     try {
       await login({ username, password })
       navigate('/dashboard')
     } catch (error) {
-      if (error instanceof ApiError) {
-        toast.error(error.message)
-      } else {
-        toast.error('An error occurred')
-      }
+      const errorMessage = await getErrorMessage(error)
+      toast.error(errorMessage)
     }
   }
 

@@ -1,39 +1,48 @@
 import {
   createContext,
-  useContext,
-  useState,
   type ReactNode,
+  useContext,
   useEffect,
+  useState,
 } from 'react'
 import { useApiFetch } from '@/hooks/use-api-fetch.ts'
-import { apiClient } from '@/lib/api/api-client.ts'
+import type {
+  AccessToken,
+  LoginResponse,
+  ApiResponse,
+  UserRole,
+  LoginRequestBody,
+} from 'shared/types/api'
 
 type AuthProviderProps = {
   children: ReactNode
 }
 
-export type AccessToken = string | null
-
 type AuthProviderState = {
   accessToken: AccessToken
   setAccessToken: (token: AccessToken) => void
+  userRole: UserRole
   isLoading: boolean
   isAuth: boolean
-  login: ({ username, password }: LoginRequestBody) => Promise<AccessToken>
+  login: ({
+    username,
+    password,
+  }: LoginRequestBody) => Promise<ApiResponse<LoginResponse>>
   logout: () => void
-}
-
-interface LoginRequestBody {
-  username: string
-  password: string
 }
 
 const initialState: AuthProviderState = {
   accessToken: null,
   setAccessToken: () => {},
+  userRole: null,
   isLoading: true,
   isAuth: false,
-  login: async () => null,
+  login: async (): Promise<ApiResponse<LoginResponse>> => ({
+    data: {
+      accessToken: null,
+      user: { id: 0, role: 'user' },
+    },
+  }),
   logout: async () => {},
 }
 
@@ -43,50 +52,61 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const apiFetch = useApiFetch()
   const [accessToken, setAccessToken] = useState<AccessToken>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [userRole, setUserRole] = useState<UserRole>(null)
 
   const isAuth = !!accessToken
 
   async function login({ username, password }: LoginRequestBody) {
-    const data: string = await apiFetch('auth/login', 'POST', {
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    })
-    setAccessToken(data)
-    return data
+    const response = await apiFetch<ApiResponse<LoginResponse>>(
+      'auth/login',
+      'POST',
+      {
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      }
+    )
+    setAccessToken(response.data.accessToken)
+    setUserRole(response.data.user.role)
+    return response
   }
 
   async function logout() {
     setAccessToken(null)
-    return await apiFetch('auth/logout', 'DELETE', {
-      credentials: 'include',
-    })
+    setUserRole(null)
+    return await apiFetch('auth/logout', 'DELETE')
   }
 
   useEffect(() => {
-    async function fetchToken() {
-      try {
-        const res = await apiClient('auth/refresh', 'POST')
-
-        if (!res.ok) return
-
-        const data = await res.json()
-        setAccessToken(data.accessToken)
-      } catch (err) {
-        console.error(err)
-        setAccessToken(null)
-      } finally {
-        setIsLoading(false)
-      }
+    function fetchToken() {
+      apiFetch<ApiResponse<LoginResponse>>('auth/refresh', 'POST', {}, false)
+        .then((response) => {
+          setAccessToken(response.data.accessToken)
+          setUserRole(response.data.user.role)
+        })
+        .catch((error) => {
+          console.error(error)
+          setAccessToken(null)
+          setUserRole(null)
+        })
+        .finally(() => setIsLoading(false))
     }
 
     fetchToken()
-  }, [])
+  }, [apiFetch])
 
   return (
     <AuthProviderContext.Provider
-      value={{ accessToken, setAccessToken, isLoading, isAuth, login, logout }}
+      value={{
+        accessToken,
+        setAccessToken,
+        userRole,
+        isLoading,
+        isAuth,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthProviderContext.Provider>

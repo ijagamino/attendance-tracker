@@ -4,7 +4,7 @@ export type RowDataPacket = mysql.RowDataPacket
 export type ResultSetHeader = mysql.ResultSetHeader
 
 export interface RowCount extends RowDataPacket {
-  totalRows: number
+  count: number
 }
 
 export interface AttendanceRecord extends RowDataPacket {
@@ -20,6 +20,7 @@ export interface User extends RowDataPacket {
   id: number
   username: string
   password: string
+  role: 'admin' | 'user'
 }
 
 export interface DashboardUsersQuery extends RowDataPacket {
