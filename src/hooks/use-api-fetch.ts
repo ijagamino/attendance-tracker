@@ -24,21 +24,28 @@ export function useApiFetch() {
             ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         })
-        return (await response.json()) as T
+        return await response.json()
       } catch (error) {
-        if (error instanceof ApiError && error.status === 401 && retry) {
-          try {
-            const response = await apiClient('auth/refresh', 'POST')
+        if (error instanceof ApiError) {
+          if (error.status === 401 && retry) {
+            try {
+              const response = await apiClient('auth/refresh', 'POST')
 
-            const { newAccessToken } = await response.json()
-            setAccessToken(newAccessToken)
+              const { newAccessToken } = await response.json()
+              setAccessToken(newAccessToken)
 
-            return apiFetch(url, method, options, false)
-          } catch (refreshError) {
-            setAccessToken(null)
-            throw refreshError
+              return apiFetch(url, method, options, false)
+            } catch (refreshError) {
+              setAccessToken(null)
+              throw refreshError
+            }
+          }
+
+          if (error.status === 403) {
+            window.location.href = '/'
           }
         }
+        console.error(error)
         throw error
       }
     },
