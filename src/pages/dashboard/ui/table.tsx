@@ -24,7 +24,7 @@ export default function DashboardUserTable({
         </TableHeader>
         <TableBody>
           {dashboardData &&
-            dashboardData.users.map((item) => (
+            dashboardData.users.items.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.username}</TableCell>
                 <TableCell>{item.totalRenderedHours}</TableCell>
