@@ -1,5 +1,9 @@
 import { useApiFetch } from '@/hooks/use-api-fetch'
-import type { DashboardResponse, ApiResponse } from 'shared/types/api'
+import type {
+  DashboardResponse,
+  ApiResponse,
+  DashboardUser,
+} from 'shared/types/api'
 import { useEffect, useState } from 'react'
 import DashboardCard from './ui/card'
 import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
@@ -9,6 +13,7 @@ import PaginationButtons from '@/components/pagination-buttons.tsx'
 
 export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<DashboardResponse>()
+  const [dashboardUsers, setDashboardUsers] = useState<DashboardUser[]>([])
   const [page, setPage] = useState<number>(1)
   const [totalPage, setTotalPage] = useState<number>()
 
@@ -23,6 +28,7 @@ export default function DashboardPage() {
 
     apiFetch<ApiResponse<DashboardResponse>>(`dashboard?${params}`, 'GET').then(
       (response) => {
+        setDashboardUsers(response.data.users.items)
         setDashboardData(response.data)
         setTotalPage(response.data.users.pagination.totalPage)
         setPage(response.data.users.pagination.page)
@@ -64,7 +70,7 @@ export default function DashboardPage() {
 
       <TypographyH2>Summary per user</TypographyH2>
 
-      <DashboardUserTable dashboardData={dashboardData} />
+      <DashboardUserTable users={dashboardUsers} />
 
       <PaginationButtons
         page={page}

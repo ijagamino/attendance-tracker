@@ -1,37 +1,19 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import type { DashboardResponse } from 'shared/types/api'
+import type { Column, DashboardUser } from 'shared/types/api'
+import { DataTable } from '@/components/data-table.tsx'
 
 export default function DashboardUserTable({
-  dashboardData,
+  users,
 }: {
-  dashboardData?: DashboardResponse
+  users: DashboardUser[]
 }) {
+  const columns: Column[] = [
+    { label: 'Name', value: 'username' },
+    { label: 'Total Rendered Hours' },
+  ]
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Total Rendered Hours</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {dashboardData &&
-            dashboardData.users.items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.username}</TableCell>
-                <TableCell>{item.totalRenderedHours}</TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <DataTable<DashboardUser> columns={columns} rows={users} />
+    </>
   )
 }
