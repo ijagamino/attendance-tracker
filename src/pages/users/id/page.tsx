@@ -6,13 +6,13 @@ import type {
   AttendanceRecord,
   UserProfileResponse,
 } from 'shared/types/api.ts'
-import AttendanceRecordTable from '@/pages/records/ui/table'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import PaginationButtons from '@/components/pagination-buttons'
 import { UserProfileCard } from './ui/card'
 import { Frown } from 'lucide-react'
 import useQueryParam from '@/hooks/use-query-param.ts'
+import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
 
 export default function UserIdPage() {
   const apiFetch = useApiFetch()
@@ -79,7 +79,7 @@ export default function UserIdPage() {
         </UserProfileCard>
       </div>
 
-      <AttendanceRecordTable attendanceRecords={attendanceRecords} />
+      <UserAttendanceRecordTable attendanceRecords={attendanceRecords} />
 
       <PaginationButtons
         page={page}

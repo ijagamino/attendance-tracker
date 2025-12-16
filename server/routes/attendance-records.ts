@@ -63,7 +63,7 @@ attendanceRecordRoutes.get(
         values.push(date)
       }
 
-      sql += `ORDER BY date DESC LIMIT ${limitNum} OFFSET ${offset}`
+      sql += ` ORDER BY date DESC LIMIT ${limitNum} OFFSET ${offset}`
 
       const [attendanceRecords] = await connection.execute<AttendanceRecord[]>(
         sql,

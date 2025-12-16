@@ -28,7 +28,6 @@ export default function RecordsPage() {
     AttendanceRecord[]
   >([])
 
-  const [date, setDate] = useState<Date | undefined>(undefined)
   const [page, setPage] = useState<number>(1)
   const [totalPage, setTotalPage] = useState<number>()
 
@@ -71,9 +70,7 @@ export default function RecordsPage() {
         <div className="space-y-1">
           <Label htmlFor="date">Filter by date</Label>
           <DatePicker
-            date={date}
-            onSelect={(selectedDate: Date | undefined) => {
-              setDate(selectedDate)
+            onSelectDate={(selectedDate) => {
               if (selectedDate) {
                 setParam('date', format(selectedDate, 'yyyy-MM-dd'))
               }

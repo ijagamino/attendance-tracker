@@ -21,7 +21,7 @@ type AuthProviderProps = {
 type AuthProviderState = {
   accessToken: AccessToken
   setAccessToken: (token: AccessToken) => void
-  userRole: UserRole
+  userRole: UserRole | null
   isLoading: boolean
   isAuth: boolean
   login: ({
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const apiFetch = useApiFetch()
   const [accessToken, setAccessToken] = useState<AccessToken>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [userRole, setUserRole] = useState<UserRole>(null)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
 
   const isAuth = !!accessToken
 
@@ -113,6 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const auth = useContext(AuthProviderContext)
 

@@ -2,14 +2,19 @@ import type { JwtPayload } from 'jsonwebtoken'
 
 export type AccessToken = string | null
 
-export type UserRole = 'admin' | 'user' | null
+export type UserRole = 'admin' | 'user'
 
 export type ResponseLocals = {
   user: Pick<User, 'id' | 'role'>
 }
 
-interface Entity {
+export interface Entity extends Record<string, string | number | boolean> {
   id: number
+}
+
+export interface Column {
+  label: string
+  value?: string
 }
 
 export interface PaginationParams {
@@ -38,12 +43,12 @@ export interface User extends Entity {
 
 export interface AttendanceRecord extends Entity {
   date: string
-  timeIn?: string
-  timeOut?: string
-  status?: string
-  totalHours?: string
+  timeIn: string
+  timeOut: string
+  status: string
+  totalHours: string
   userId: string
-  username?: string
+  username: string
 }
 
 export interface AttendanceRecordResponse {
@@ -59,8 +64,13 @@ export interface UserProfileResponse {
   totalRenderedHours: string
 }
 
+export interface DashboardUser extends Entity {
+  username: string
+  totalRenderedHours: string
+}
+
 export interface DashboardResponse {
-  users: Paginated<User & { totalRenderedHours: string }>
+  users: Paginated<DashboardUser>
   attendees: number
   lateAttendees: number
   earliest: string
@@ -72,8 +82,8 @@ export interface AuthPayload extends JwtPayload {
 
 export interface MyAttendanceRecordResponse {
   timeIn: string
-  timeOut?: string
-  status?: string
+  timeOut: string | undefined
+  status: string | undefined | null
 }
 
 export interface LoginRequestBody {
