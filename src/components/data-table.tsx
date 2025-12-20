@@ -6,15 +6,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { Column, Entity } from 'shared/types/api'
+import type { Column } from 'shared/types/api'
 import _ from 'lodash'
 
-export function DataTable<T extends Entity>({
+export function DataTable<
+  T extends Record<string, string | number | null | unknown>,
+>({
   columns,
   rows,
   onRowClick,
 }: {
-  columns: Column[]
+  columns: Column<T>[]
   rows: T[]
   onRowClick?: (row: T) => void
 }) {
@@ -26,11 +28,11 @@ export function DataTable<T extends Entity>({
 
       return {
         ...column,
-        value: _.camelCase(column.label),
+        value: _.snakeCase(column.label),
       }
     })
   }
-  const formattedColumns: Column[] = formatColumns()
+  const formattedColumns = formatColumns()
 
   return (
     <div className="rounded-md border">
@@ -50,7 +52,17 @@ export function DataTable<T extends Entity>({
               {columns &&
                 formattedColumns.map((column) => (
                   <TableCell key={column.value ?? column.label}>
-                    {column.value ? (row[column.value] ?? '-') : '-'}
+                    {(() => {
+                      const rawValue = column.value
+                        ? String(_.get(row, column.value))
+                        : undefined
+
+                      if (column.format) {
+                        return column.format(rawValue, row)
+                      }
+
+                      return rawValue !== null ? String(rawValue) : '-'
+                    })()}
                   </TableCell>
                 ))}
               {!columns && <TableCell>{Object.values(row)}</TableCell>}

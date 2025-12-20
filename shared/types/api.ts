@@ -1,4 +1,5 @@
 import type { JwtPayload } from 'jsonwebtoken'
+import type { ReactNode } from 'react'
 
 export type AccessToken = string | null
 
@@ -12,9 +13,10 @@ export interface Entity extends Record<string, string | number | boolean> {
   id: number
 }
 
-export interface Column {
+export interface Column<T> {
   label: string
   value?: string
+  format?: (value: unknown, row: T) => ReactNode
 }
 
 export interface PaginationParams {

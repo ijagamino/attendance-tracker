@@ -1,11 +1,5 @@
-import { useApiFetch } from '@/hooks/use-api-fetch'
-import { formatDateToLocal } from '@/lib/utils'
 import { useEffect, useState } from 'react'
-import type {
-  ApiResponse,
-  AttendanceRecord,
-  AttendanceRecordResponse,
-} from 'shared/types/api'
+import type { AttendanceRecord } from '@/supabase/global.types'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
@@ -14,40 +8,50 @@ import AttendanceRecordTable from './ui/table'
 import { TypographyH1 } from '@/components/ui/typography'
 import PaginationButtons from '@/components/pagination-buttons'
 import useQueryParam from '@/hooks/use-query-param'
+import { supabase } from '@/supabase/client'
 
 export default function RecordsPage() {
-  const apiFetch = useApiFetch()
-
   const { searchParams, setParam } = useQueryParam({
     name: '',
     date: '',
     page: '1',
+    limit: '5',
   })
 
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([])
 
-  const [page, setPage] = useState<number>(1)
   const [totalPage, setTotalPage] = useState<number>()
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams)
+  const page = Number(searchParams.get('page') ?? 1)
+  const limit = Number(searchParams.get('limit') ?? 5)
+  const name = searchParams.get('name') ?? ''
+  const date = searchParams.get('date') ?? ''
 
-    apiFetch<ApiResponse<AttendanceRecordResponse>>(
-      `attendance-records?${params}`,
-      'GET'
-    ).then((response) => {
-      setAttendanceRecords(
-        response.data.attendanceRecords.items.map((item) => ({
-          ...item,
-          date: formatDateToLocal(item.date, 'MM-dd-yyyy'),
-        }))
-      )
-      setTotalPage(response.data.attendanceRecords.pagination.totalPage)
-      setPage(response.data.attendanceRecords.pagination.page)
-    })
-  }, [searchParams, apiFetch])
+  useEffect(() => {
+    async function fetchAttendanceRecords() {
+      const rangeFrom = (page - 1) * limit
+      const rangeTo = rangeFrom + limit - 1
+
+      const query = supabase
+        .from('attendance_records')
+        .select('*, profiles!inner(first_name)', { count: 'exact' })
+
+      if (name) query.ilike('profiles.first_name', `%${name}%`)
+      if (date) query.eq('date', date)
+
+      query.range(rangeFrom, rangeTo)
+
+      const { data, count, error } = await query
+      if (error) throw error
+
+      setAttendanceRecords(data)
+      setTotalPage(Math.ceil((count ?? 0) / limit))
+    }
+
+    fetchAttendanceRecords()
+  }, [limit, name, page, date])
 
   return (
     <>
@@ -85,7 +89,6 @@ export default function RecordsPage() {
         page={page}
         totalPage={totalPage}
         onPageChange={(newPage) => {
-          setPage(newPage)
           setParam('page', newPage.toString())
         }}
       />

@@ -5,14 +5,11 @@ import {
   useEffect,
   useState,
 } from 'react'
-import { useApiFetch } from '@/hooks/use-api-fetch.ts'
-import type {
-  AccessToken,
-  LoginResponse,
-  ApiResponse,
-  UserRole,
-  LoginRequestBody,
-} from 'shared/types/api'
+import type { AccessToken } from 'shared/types/api'
+import { signInWithEmail } from '@/supabase/auth.ts'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from '@/supabase/client.ts'
+import type { Role } from '@/supabase/global.types'
 
 type AuthProviderProps = {
   children: ReactNode
@@ -21,87 +18,93 @@ type AuthProviderProps = {
 type AuthProviderState = {
   accessToken: AccessToken
   setAccessToken: (token: AccessToken) => void
-  userRole: UserRole | null
+  userId: string | undefined
+  role: Role | null
   isLoading: boolean
   isAuth: boolean
-  login: ({
-    username,
-    password,
-  }: LoginRequestBody) => Promise<ApiResponse<LoginResponse>>
-  logout: () => void
+  login: (username: string, password: string) => Promise<void>
+  logout: () => Promise<void>
 }
 
 const initialState: AuthProviderState = {
   accessToken: null,
   setAccessToken: () => {},
-  userRole: null,
+  userId: undefined,
+  role: null,
   isLoading: true,
   isAuth: false,
-  login: async (): Promise<ApiResponse<LoginResponse>> => ({
-    data: {
-      accessToken: null,
-      user: { id: 0, role: 'user' },
-    },
-  }),
+  login: async () => {},
   logout: async () => {},
 }
 
 const AuthProviderContext = createContext<AuthProviderState>(initialState)
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const apiFetch = useApiFetch()
   const [accessToken, setAccessToken] = useState<AccessToken>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [userRole, setUserRole] = useState<UserRole | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [role, setRole] = useState<Role | null>(null)
+  const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true)
+  const [isRoleLoading, setIsRoleLoading] = useState<boolean>(true)
 
-  const isAuth = !!accessToken
+  const isLoading = isSessionLoading || isRoleLoading
 
-  async function login({ username, password }: LoginRequestBody) {
-    const response = await apiFetch<ApiResponse<LoginResponse>>(
-      'auth/login',
-      'POST',
-      {
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-      }
-    )
-    setAccessToken(response.data.accessToken)
-    setUserRole(response.data.user.role)
-    return response
+  const isAuth = !!session
+  const userId = session?.user.id
+
+  async function login(email: string, password: string) {
+    const { session } = await signInWithEmail(email, password)
+    setSession(session)
+    return
   }
 
   async function logout() {
-    setAccessToken(null)
-    setUserRole(null)
-    return await apiFetch('auth/logout', 'DELETE')
+    await supabase.auth.signOut()
+    setSession(null)
   }
 
   useEffect(() => {
-    function fetchToken() {
-      apiFetch<ApiResponse<LoginResponse>>('auth/refresh', 'POST', {}, false)
-        .then((response) => {
-          setAccessToken(response.data.accessToken)
-          setUserRole(response.data.user.role)
-        })
-        .catch((error) => {
-          console.error(error)
-          setAccessToken(null)
-          setUserRole(null)
-        })
-        .finally(() => setIsLoading(false))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsSessionLoading(false)
+      setSession(session)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSessionLoading(false)
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    async function fetchRole() {
+      if (!session?.user) {
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (!error) setRole(data?.role ?? null)
+
+      setIsRoleLoading(false)
     }
 
-    fetchToken()
-  }, [apiFetch])
+    fetchRole()
+  }, [session])
 
   return (
     <AuthProviderContext.Provider
       value={{
         accessToken,
         setAccessToken,
-        userRole,
+        userId,
+        role,
         isLoading,
         isAuth,
         login,

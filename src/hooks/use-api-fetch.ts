@@ -1,7 +1,7 @@
 import { useAuth } from '@/app/providers/auth-provider.tsx'
 import type { HttpMethod } from '@/lib/api/api-client.ts'
 import { apiClient } from '@/lib/api/api-client.ts'
-import { ApiError } from '@/lib/api/api-error.ts'
+import { ApiError } from '@/lib/error/api-error.ts'
 import { useCallback } from 'react'
 
 export function useApiFetch() {

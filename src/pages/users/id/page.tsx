@@ -1,11 +1,4 @@
 import { TypographyH2 } from '@/components/ui/typography'
-import { useApiFetch } from '@/hooks/use-api-fetch'
-import { formatDateToLocal } from '@/lib/utils'
-import type {
-  ApiResponse,
-  AttendanceRecord,
-  UserProfileResponse,
-} from 'shared/types/api.ts'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import PaginationButtons from '@/components/pagination-buttons'
@@ -13,46 +6,79 @@ import { UserProfileCard } from './ui/card'
 import { Frown } from 'lucide-react'
 import useQueryParam from '@/hooks/use-query-param.ts'
 import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
+import { supabase } from '@/supabase/client'
+import type { AttendanceRecord } from '@/supabase/global.types'
 
 export default function UserIdPage() {
-  const apiFetch = useApiFetch()
-
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([])
 
   const { searchParams, setParam } = useQueryParam({
     page: '1',
+    limit: '5',
   })
 
-  const [page, setPage] = useState<number>(1)
   const [totalPage, setTotalPage] = useState<number>()
+  const [username, setUsername] = useState<string | undefined>('')
+
   const [totalRenderedHours, setTotalRenderedHours] = useState<
     string | undefined
   >('')
-  const [username, setUsername] = useState<string | undefined>('')
 
   const { id } = useParams()
 
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams)
+  const page = Number(searchParams.get('page') ?? 1)
+  const name = searchParams.get('name') ?? ''
+  const limit = Number(searchParams.get('limit') ?? 5)
 
-    apiFetch<ApiResponse<UserProfileResponse>>(
-      `users/${id}/attendance-records?${params}`,
-      'GET'
-    ).then((response) => {
-      setAttendanceRecords(
-        response.data.attendanceRecords.items.map((item) => ({
-          ...item,
-          date: formatDateToLocal(item.date, 'MM-dd-yyyy'),
-        }))
-      )
-      setUsername(response.data.attendanceRecords.items[0].username)
-      setTotalRenderedHours(response.data.totalRenderedHours)
-      setTotalPage(response.data.attendanceRecords.pagination.totalPage)
-      setPage(response.data.attendanceRecords.pagination.page)
-    })
-  }, [searchParams, id, apiFetch])
+  useEffect(() => {
+    async function getUserAttendanceRecords() {
+      const rangeFrom = (page - 1) * limit
+      const rangeTo = rangeFrom + limit - 1
+
+      const query = supabase
+        .from('attendance_records')
+        .select('*, profiles!inner(user_id, first_name)', {
+          count: 'exact',
+        })
+
+      if (id) {
+        query.eq('profiles.user_id', id)
+      }
+
+      query.range(rangeFrom, rangeTo)
+
+      const { data, count, error } = await query
+      if (error) throw new Error(error.message)
+
+      setAttendanceRecords(data)
+      setTotalPage(Math.ceil((count ?? 0) / limit))
+
+      if (data[0].profiles) setUsername(data[0].profiles.first_name)
+    }
+
+    async function getTotalRenderedHours() {
+      const query = supabase
+        .from('attendance_records')
+        .select('total_hours.sum()')
+
+      if (id) {
+        query.eq('user_id', id)
+      }
+
+      const { data, error } = await query
+      if (error) throw new Error(error.message)
+
+      if (data) {
+        const formattedTime = data[0].sum.toString().split('.')[0]
+        setTotalRenderedHours(formattedTime)
+      }
+    }
+
+    getUserAttendanceRecords()
+    getTotalRenderedHours()
+  }, [id, limit, name, page])
 
   const [hours, minutes, seconds] = totalRenderedHours?.split(':') ?? []
 
@@ -85,7 +111,6 @@ export default function UserIdPage() {
         page={page}
         totalPage={totalPage}
         onPageChange={(newPage) => {
-          setPage(newPage)
           setParam('page', newPage.toString())
         }}
       />

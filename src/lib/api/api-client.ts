@@ -1,4 +1,4 @@
-import { ApiError } from '@/lib/api/api-error.ts'
+import { ApiError } from '@/lib/error/api-error.ts'
 
 const baseUrl = 'http://localhost:3000/api'
 
