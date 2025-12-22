@@ -125,13 +125,15 @@ client. For example:
 ./src/pages/dashboard = /dashboard
 ./src/pages/home = /home
 ./src/pages/records = /records
+./src/pages/users = /users
+./src/pages/users/id/ = /users/[:id]
 ```
 
 Each directory such as `./src/pages/users` should have a structure of:
 
 ```plaintext
-📂users // name of the page, is '/users'
-┣ 📂id // optional, a subdirectory, the parameter like :id or :slug,
+📂users
+┣ 📂id // optional subdirectory, the parameter like :id or :slug,
 example is '/users/1'
 ┃ ┣ 📂ui // page-specific components
 ┃ ┃ ┗ 📜card.tsx
@@ -195,7 +197,7 @@ Run `npx supabase db migration up` then seed the database by running `npm run db
 
 ```sh
 npx supabase db migration up
-npm run db:create
+npm run db:seed
 ```
 
 ### Frontend
