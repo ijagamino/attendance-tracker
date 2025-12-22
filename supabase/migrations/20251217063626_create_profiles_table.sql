@@ -48,7 +48,7 @@ DECLARE
   requested_role text;
   first_name text;
 BEGIN
-  first_name := NEW.raw_user_meta_data->>'first_name';
+  first_name := COALESCE(NULLIF(trim(NEW.raw_user_meta_data->>'first_name'), ''), 'Unknown');
   requested_role := NEW.raw_user_meta_data->>'role';
 
   IF first_name IS NULL OR length(trim(first_name)) = 0 THEN
