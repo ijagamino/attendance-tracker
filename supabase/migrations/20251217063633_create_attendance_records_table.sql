@@ -49,26 +49,26 @@ USING (
   EXISTS (
     SELECT 1 
     FROM profiles p
-    WHERE p.user_id = auth.uid()
+    WHERE (SELECT auth.uid()) = p.user_id 
       AND p.role = 'admin'
   )
 
-  OR auth.uid() = user_id
+  OR (SELECT auth.uid()) = user_id
 );
 
 CREATE POLICY "Employees can insert their own attendance"
 ON attendance_records
 FOR INSERT
 WITH CHECK (
-    auth.uid() = user_id 
+    (SELECT auth.uid()) = user_id 
 );
 
 CREATE POLICY "Employees can update their own attendance"
 ON attendance_records
 FOR UPDATE
 USING (
-    auth.uid() = user_id 
+    (SELECT auth.uid()) = user_id 
 )
 WITH CHECK (
-    auth.uid() = user_id 
+    (SELECT auth.uid()) = user_id 
 );
