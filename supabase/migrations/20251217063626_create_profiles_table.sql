@@ -11,6 +11,32 @@ CREATE TABLE IF NOT EXISTS
     CONSTRAINT unique_user_profile UNIQUE (user_id)
 );
 
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE FUNCTION is_admin()
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 
+    FROM profiles p
+    WHERE (SELECT auth.uid()) = p.user_id 
+      AND p.role = 'admin'
+  );
+END;
+$$;
+
+
+CREATE POLICY "Admins or owners can view profiles"
+ON profiles
+FOR SELECT
+USING (
+  (SELECT auth.uid()) = user_id OR is_admin()
+);
+
 CREATE FUNCTION public.handle_new_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -41,7 +67,7 @@ BEGIN
   );
 
   RETURN NEW;
-end;
+END;
 $$;
 
 CREATE TRIGGER on_auth_user_created

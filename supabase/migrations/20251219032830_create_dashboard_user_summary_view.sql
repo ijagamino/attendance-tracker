@@ -1,4 +1,4 @@
-CREATE VIEW dashboard_user_summary AS
+CREATE VIEW dashboard_user_summary WITH (security_invoker = on) AS
 SELECT
   p.id,
   p.user_id,
