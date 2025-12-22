@@ -1,7 +1,7 @@
 import { DataTable } from '@/components/data-table.tsx'
-import { formatDateStringToLocaleTime } from '@/lib/format-date'
+import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
+import type { Column } from '@/shared/types'
 import type { AttendanceRecord } from '@/supabase/global.types'
-import type { Column } from 'shared/types/api.ts'
 
 export default function UserAttendanceRecordTable({
   attendanceRecords,
@@ -27,11 +27,7 @@ export default function UserAttendanceRecordTable({
     {
       label: 'Total Hours',
       format: (_, row) => {
-        const [hours, minutes] = row.total_hours
-          ? row.total_hours.split(':')
-          : []
-
-        if (row.total_hours) return `${hours}:${minutes}`
+        if (row.total_hours) return formatInterval(row.total_hours as string)
       },
     },
   ]

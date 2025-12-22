@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS
 
 ALTER TABLE public.attendance_records ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Admins can view all attendance records"
+CREATE POLICY "Admins or owners can view attendance records"
 ON attendance_records
 FOR SELECT
 USING (
@@ -52,13 +52,8 @@ USING (
     WHERE p.user_id = auth.uid()
       AND p.role = 'admin'
   )
-);
 
-CREATE POLICY "Employees can view their own attendance"
-ON attendance_records
-FOR SELECT
-USING (
-    auth.uid() = user_id
+  OR auth.uid() = user_id
 );
 
 CREATE POLICY "Employees can insert their own attendance"

@@ -6,11 +6,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { Column } from 'shared/types/api'
+import type { Column } from '@/shared/types'
 import _ from 'lodash'
 
 export function DataTable<
-  T extends Record<string, string | number | null | unknown>,
+  T extends Record<string, string | number | null>,
 >({
   columns,
   rows,

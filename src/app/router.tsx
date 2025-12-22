@@ -9,7 +9,7 @@ import LoginLayout from '@/layouts/login-layout'
 import RegisterPage from '@/pages/register/page'
 import ProtectRoute from '@/components/protect-route'
 import LoginRouteWrapper from '@/components/login-route-wrapper.tsx'
-// import NotFoundPage from '@/pages/not-found/page'
+import NotFoundPage from '@/pages/not-found/page'
 
 export default function AppRouter() {
   return (
@@ -54,7 +54,7 @@ export default function AppRouter() {
           <Route path="/register" element={<RegisterPage />} />
         </Route>
 
-        {/* <Route path="*" element={<NotFoundPage />} /> */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   )

@@ -14,7 +14,6 @@ import { supabase } from '@/supabase/client'
 import { useAuth } from '@/app/providers/auth-provider'
 import type { AttendanceRecord } from '@/supabase/global.types'
 import { useCallback, useEffect, useState } from 'react'
-import { PostgrestError } from '@supabase/supabase-js'
 
 export default function HomePage() {
   const { userId, isLoading } = useAuth()
@@ -34,9 +33,10 @@ export default function HomePage() {
         .eq('user_id', userId)
         .eq('date', date)
         .single()
+        .overrideTypes<{ total_hours: string }>()
 
       if (!data) return
-      if (error) throw error
+      if (error) throw Error(error)
       if (data) setMyAttendanceRecord(data)
     } catch (error) {
       console.error(error)
@@ -67,6 +67,7 @@ export default function HomePage() {
       await getMyAttendanceRecord()
     } catch (error) {
       const errorMessage = getErrorMessage(error)
+      console.error(error)
       toast.error(errorMessage)
     }
   }
@@ -81,18 +82,18 @@ export default function HomePage() {
 
   const timeIn: string = myAttendanceRecord?.time_in
     ? new Date(myAttendanceRecord?.time_in).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      })
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
     : ''
 
   const timeOut: string = myAttendanceRecord?.time_out
     ? new Date(myAttendanceRecord?.time_out).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      })
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
     : ''
 
   return (

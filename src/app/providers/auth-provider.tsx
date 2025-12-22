@@ -1,3 +1,7 @@
+import { signInWithEmail } from '@/supabase/auth.ts'
+import { supabase } from '@/supabase/client.ts'
+import type { Role } from '@/supabase/global.types'
+import type { Session } from '@supabase/supabase-js'
 import {
   createContext,
   type ReactNode,
@@ -5,19 +9,12 @@ import {
   useEffect,
   useState,
 } from 'react'
-import type { AccessToken } from 'shared/types/api'
-import { signInWithEmail } from '@/supabase/auth.ts'
-import type { Session } from '@supabase/supabase-js'
-import { supabase } from '@/supabase/client.ts'
-import type { Role } from '@/supabase/global.types'
 
 type AuthProviderProps = {
   children: ReactNode
 }
 
 type AuthProviderState = {
-  accessToken: AccessToken
-  setAccessToken: (token: AccessToken) => void
   userId: string | undefined
   role: Role | null
   isLoading: boolean
@@ -27,20 +24,17 @@ type AuthProviderState = {
 }
 
 const initialState: AuthProviderState = {
-  accessToken: null,
-  setAccessToken: () => {},
   userId: undefined,
   role: null,
   isLoading: true,
   isAuth: false,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
 }
 
 const AuthProviderContext = createContext<AuthProviderState>(initialState)
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [accessToken, setAccessToken] = useState<AccessToken>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [role, setRole] = useState<Role | null>(null)
   const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true)
@@ -81,6 +75,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     async function fetchRole() {
       if (!session?.user) {
+        setRole(null)
+        setIsRoleLoading(false)
         return
       }
 
@@ -101,8 +97,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <AuthProviderContext.Provider
       value={{
-        accessToken,
-        setAccessToken,
         userId,
         role,
         isLoading,
@@ -116,7 +110,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const auth = useContext(AuthProviderContext)
 

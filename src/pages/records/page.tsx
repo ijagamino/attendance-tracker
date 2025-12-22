@@ -43,7 +43,7 @@ export default function RecordsPage() {
 
       query.range(rangeFrom, rangeTo)
 
-      const { data, count, error } = await query
+      const { data, count, error } = await query.overrideTypes<Array<{ total_hours: string }>>()
       if (error) throw error
 
       setAttendanceRecords(data)

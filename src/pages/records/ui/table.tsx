@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router'
-import type { Column } from 'shared/types/api'
+import type { Column } from '@/shared/types'
 import type { AttendanceRecord } from '@/supabase/global.types'
 import { DataTable } from '@/components/data-table'
-import { formatDateStringToLocaleTime } from '@/lib/format-date'
+import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
 
 export default function AttendanceRecordTable({
   attendanceRecords,
@@ -30,11 +30,7 @@ export default function AttendanceRecordTable({
     {
       label: 'Total Hours',
       format: (_, row) => {
-        const [hours, minutes] = row.total_hours
-          ? row.total_hours.split(':')
-          : []
-
-        if (row.total_hours) return `${hours}:${minutes}`
+        return formatInterval(row.total_hours as string)
       },
     },
   ]

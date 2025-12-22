@@ -18,24 +18,23 @@ import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button.tsx'
 import { toast } from 'sonner'
 import { signUpWithEmail } from '@/supabase/auth'
-import { ApiError } from '@/lib/error/api-error.ts'
 import { type FormEvent, useState } from 'react'
 import { isAuthApiError } from '@supabase/supabase-js'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [firstName, setFirstName] = useState<string>('')
 
   const [passwordInputType, setPasswordInputType] = useState<
     'text' | 'password'
   >('password')
 
   async function handleSubmit(e: FormEvent) {
-    console.log(e)
     e.preventDefault()
 
     try {
-      const userData = await signUpWithEmail(email, password)
+      await signUpWithEmail({ email, password, firstName })
     } catch (error) {
       if (isAuthApiError(error)) {
         toast.error(`${error.status}: ${error.message}`)
@@ -90,6 +89,17 @@ export default function RegisterPage() {
                   {passwordInputType === 'password' ? <EyeOff /> : <Eye />}
                 </InputGroupButton>
               </InputGroup>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="first_name">First Name</Label>
+              <Input
+                id="first_name"
+                className="px-2 py-1 border-2 rounded border-teal-600/20 focus:border-teal-600 focus:outline-none"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
             </div>
           </CardContent>
 

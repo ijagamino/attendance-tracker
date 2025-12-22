@@ -10,6 +10,7 @@ export default function LoginRouteWrapper({
   const { isLoading, isAuth } = useAuth()
 
   if (isLoading) return null
+
   if (isAuth) return <Navigate to="/" />
 
   return children

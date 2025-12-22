@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
-import DashboardCard from './ui/card'
-import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
-import DashboardUserTable from './ui/table'
-import useQueryParam from '@/hooks/use-query-param.ts'
 import PaginationButtons from '@/components/pagination-buttons.tsx'
+import { Separator } from '@/components/ui/separator'
+import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
+import useQueryParam from '@/hooks/use-query-param.ts'
+import { formatDateStringToLocaleTime } from '@/lib/format'
 import { supabase } from '@/supabase/client'
 import type { DashboardData } from '@/supabase/global.types'
-import { formatDateStringToLocaleTime } from '@/lib/format-date'
+import { useEffect, useState } from 'react'
+import DashboardCard from './ui/card'
+import DashboardUserTable from './ui/table'
 
 export default function DashboardPage() {
   const { searchParams, setParam } = useQueryParam({
@@ -47,7 +48,7 @@ export default function DashboardPage() {
 
       query.range(rangeFrom, rangeTo)
 
-      const { data: dashboardUserSummary, count, error } = await query
+      const { data: dashboardUserSummary, count, error } = await query.overrideTypes<Array<{ total_rendered_hours: string }>>()
       if (error) throw error
 
       if (
@@ -70,43 +71,57 @@ export default function DashboardPage() {
     fetchDashboard()
   }, [limit, name, page])
 
+
+
   return (
     <>
       <header>
         <TypographyH1>Dashboard</TypographyH1>
       </header>
 
-      <TypographyH2>Summary of today</TypographyH2>
+      <TypographyH2>Daily summary</TypographyH2>
 
-      <div className="grid my-8 grid-cols-1 md:grid-cols-3 gap-4">
-        <DashboardCard title="Attendees">
-          <p className="font-extrabold text-center text-6xl">
-            {dashboardData?.attendees}
+      {dashboardData ? (
+        <div className="grid my-8 grid-cols-1 md:grid-cols-3 gap-4">
+          <DashboardCard title="Attendees">
+            <p className="font-extrabold text-center text-6xl">
+              {dashboardData?.attendees}
+            </p>
+          </DashboardCard>
+
+          <DashboardCard title="Late Attendees">
+            <p className="font-extrabold text-center text-6xl">
+              {dashboardData?.lateAttendees}
+            </p>
+          </DashboardCard>
+
+          <DashboardCard title="Earliest Time-in">
+            <p className=" font-extrabold text-center text-6xl">
+              {dashboardData?.earliestTimeIn &&
+                formatDateStringToLocaleTime(
+                  dashboardData?.earliestTimeIn.toString()
+                )}
+            </p>
+          </DashboardCard>
+        </div>
+      ) : (
+        <>
+          <p>
+            No attendance records for today was found.
           </p>
-        </DashboardCard>
+        </>
+      )}
 
-        <DashboardCard title="Late Attendees">
-          <p className="font-extrabold text-center text-6xl">
-            {dashboardData?.lateAttendees}
-          </p>
-        </DashboardCard>
+      <Separator className="mb-4" />
 
-        <DashboardCard title="Earliest Time-in">
-          <p className=" font-extrabold text-center text-6xl">
-            {dashboardData?.earliestTimeIn &&
-              formatDateStringToLocaleTime(
-                dashboardData?.earliestTimeIn.toString()
-              )}
-          </p>
-        </DashboardCard>
-      </div>
+      <TypographyH2>User summary</TypographyH2>
 
-      <hr className="mb-4" />
-
-      <TypographyH2>Summary per user</TypographyH2>
-
-      {dashboardData?.users && (
+      {dashboardData?.users ? (
         <DashboardUserTable users={dashboardData.users} />
+      ) : (
+        <p>
+          No attendance records found.
+        </p>
       )}
 
       <PaginationButtons

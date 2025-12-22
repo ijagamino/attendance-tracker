@@ -1,13 +1,17 @@
-import type { Database } from './database.types'
+import type { Enums, Tables } from './database.types'
 
-export type Role = Database['public']['Enums']['app_role']
+export type Role = Enums<'app_role'>
+
+export type Profile = Pick<Tables<'profiles'>, 'first_name'>
 export type AttendanceRecord =
-  Database['public']['Tables']['attendance_records']['Row']
+  Omit<Tables<'attendance_records'>, 'total_hours'> & {
+    total_hours: string
+  }
 
 export interface DashboardData {
   users: {
     first_name: string | null
-    total_rendered_hours: unknown
+    total_rendered_hours: string
     user_id: string | null
   }[]
   attendees: number

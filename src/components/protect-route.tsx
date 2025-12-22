@@ -15,6 +15,7 @@ export default function ProtectRoute({
 
   if (isLoading) return null
   if (!isAuth) return <Navigate to="/login" />
+  if (allowedRole && role === null) return null
   if (allowedRole && allowedRole !== role) {
     return <Navigate to="/" state={{ from: location.pathname }} />
   }

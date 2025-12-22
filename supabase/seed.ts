@@ -3,13 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 const url = 'http://127.0.0.1:54321'
 const secretKey = 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz'
 
+
 const supabase = createClient(url, secretKey)
 
 interface User {
   email: string
   password: string
   first_name: string
-  role: 'admin' | 'employee'
+  role?: 'admin' | 'employee'
 }
 
 async function seed() {
@@ -24,25 +25,21 @@ async function seed() {
       email: 'ivan@email.com',
       password: '123456',
       first_name: 'Ivan',
-      role: 'employee',
     },
     {
       email: 'edward@email.com',
       password: '123456',
       first_name: 'Edward',
-      role: 'employee',
     },
     {
       email: 'charles@email.com',
       password: '123456',
       first_name: 'Charles',
-      role: 'employee',
     },
     {
       email: 'john@email.com',
       password: '123456',
       first_name: 'John',
-      role: 'employee',
     },
   ]
 
@@ -50,6 +47,12 @@ async function seed() {
     const { data, error } = await supabase.auth.signUp({
       email: user.email,
       password: user.password,
+      options: {
+        data: {
+          first_name: user.first_name,
+          role: user.role ?? 'employee'
+        }
+      }
     })
 
     if (!data.user) return
@@ -57,22 +60,9 @@ async function seed() {
 
     const userId = data.user.id
 
-    const { error: profileError } = await supabase.from('profiles').insert({
-      user_id: userId,
-      first_name: user.first_name,
-      role: user.role,
-    })
-
-    if (profileError) {
-      console.error(
-        `❌ Failed to insert profile for ${user.email}`,
-        profileError.message
-      )
-    } else {
-      console.log(
-        `✅ Created user: ${user.email} (${userId}, ${user.first_name})`
-      )
-    }
+    console.log(
+      `Created user: ${user.email} (${userId}, ${user.first_name})`
+    )
   }
 
   process.exit(0)

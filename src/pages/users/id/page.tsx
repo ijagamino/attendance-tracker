@@ -7,9 +7,10 @@ import { Frown } from 'lucide-react'
 import useQueryParam from '@/hooks/use-query-param.ts'
 import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
 import { supabase } from '@/supabase/client'
-import type { AttendanceRecord } from '@/supabase/global.types'
+import type { AttendanceRecord, Profile } from '@/supabase/global.types'
 
 export default function UserIdPage() {
+  const [profile, setProfile] = useState<Profile>()
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([])
@@ -20,7 +21,6 @@ export default function UserIdPage() {
   })
 
   const [totalPage, setTotalPage] = useState<number>()
-  const [username, setUsername] = useState<string | undefined>('')
 
   const [totalRenderedHours, setTotalRenderedHours] = useState<
     string | undefined
@@ -33,7 +33,13 @@ export default function UserIdPage() {
   const limit = Number(searchParams.get('limit') ?? 5)
 
   useEffect(() => {
-    async function getUserAttendanceRecords() {
+    async function getUserProfile(userId: string) {
+      const { data } = await supabase.from('profiles').select("first_name").eq('user_id', userId).single()
+
+      if (data) setProfile(data)
+    }
+
+    async function getUserAttendanceRecords(userId: string) {
       const rangeFrom = (page - 1) * limit
       const rangeTo = rangeFrom + limit - 1
 
@@ -43,8 +49,8 @@ export default function UserIdPage() {
           count: 'exact',
         })
 
-      if (id) {
-        query.eq('profiles.user_id', id)
+      if (userId) {
+        query.eq('profiles.user_id', userId)
       }
 
       query.range(rangeFrom, rangeTo)
@@ -54,37 +60,38 @@ export default function UserIdPage() {
 
       setAttendanceRecords(data)
       setTotalPage(Math.ceil((count ?? 0) / limit))
-
-      if (data[0].profiles) setUsername(data[0].profiles.first_name)
     }
 
-    async function getTotalRenderedHours() {
+    async function getTotalRenderedHours(userId: string) {
       const query = supabase
         .from('attendance_records')
         .select('total_hours.sum()')
 
-      if (id) {
-        query.eq('user_id', id)
+      if (userId) {
+        query.eq('user_id', userId)
       }
 
-      const { data, error } = await query
+      const { data, error } = await query.single()
       if (error) throw new Error(error.message)
 
       if (data) {
-        const formattedTime = data[0].sum.toString().split('.')[0]
+        const formattedTime = data.sum.toString().split('.')[0]
         setTotalRenderedHours(formattedTime)
       }
     }
 
-    getUserAttendanceRecords()
-    getTotalRenderedHours()
+    if (id) {
+      getUserProfile(id)
+      getUserAttendanceRecords(id)
+      getTotalRenderedHours(id)
+    }
   }, [id, limit, name, page])
 
   const [hours, minutes, seconds] = totalRenderedHours?.split(':') ?? []
 
   return (
     <>
-      <TypographyH2>{username}'s attendance records</TypographyH2>
+      <TypographyH2>{profile?.first_name}'s attendance records</TypographyH2>
       <div className="grid my-2 max-w-72">
         <UserProfileCard title="Total hours rendered this month">
           {!hours && !minutes && !seconds ? (

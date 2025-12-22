@@ -1,6 +1,8 @@
 # Attendance Tracking System
 
-Simple attendance tracking system. Users will input their username to log their time-in and time-out attendance per day. Attendance records of all users and of a specific user can be seen. Shows daily summary on dashboard.
+Simple attendance tracking system. Users will input their username to log their
+time-in and time-out attendance per day. Attendance records of all users and of
+a specific user can be seen. Shows daily summary on dashboard.
 
 ---
 
@@ -8,14 +10,10 @@ Simple attendance tracking system. Users will input their username to log their 
 
 The project is structured like so:
 
-```
+```plaintext
 📦attendance-tracking-system
 ┣ 📂public // static assets not bundled
 ┃ ...
-┣ 📂scripts
-┃ ┣ create-db.ps1 // db creation script
-┣ 📂server
-┃ ┣ ...
 ┣ 📂src // frontend
 ┃ ┣ ...
 ┃ 📜... // root files, usually configs
@@ -23,12 +21,15 @@ The project is structured like so:
 
 ### Frontend structure
 
-```
+```plaintext
 📂src
 ┣ 📂app
+┃ ┣ 📂providers
+┃ ┃ ┣ 📜auth-provider.tsx
+┃ ┃ ┗ 📜theme-provider.tsx
 ┃ ┣ 📜index.tsx
 ┃ ┣ 📜provider.tsx
-┃ ┗ 📜routes.tsx
+┃ ┗ 📜router.tsx
 ┣ 📂assets
 ┃ ┗ 📜react.svg
 ┣ 📂components
@@ -37,22 +38,32 @@ The project is structured like so:
 ┃ ┃ ┣ 📜calendar.tsx
 ┃ ┃ ┣ 📜card.tsx
 ┃ ┃ ┣ 📜dropdown-menu.tsx
+┃ ┃ ┣ 📜input-group.tsx
 ┃ ┃ ┣ 📜input.tsx
 ┃ ┃ ┣ 📜label.tsx
 ┃ ┃ ┣ 📜navigation-menu.tsx
 ┃ ┃ ┣ 📜popover.tsx
+┃ ┃ ┣ 📜separator.tsx
+┃ ┃ ┣ 📜sonner.tsx
 ┃ ┃ ┣ 📜table.tsx
+┃ ┃ ┣ 📜textarea.tsx
 ┃ ┃ ┗ 📜typography.tsx
 ┃ ┣ 📜app-header.tsx
+┃ ┣ 📜date-table.tsx
 ┃ ┣ 📜date-picker.tsx
+┃ ┣ 📜login-route-wrapper.tsx
 ┃ ┣ 📜mode-toggle.tsx
 ┃ ┣ 📜pagination-buttons.tsx
-┃ ┗ 📜theme-provider.tsx
+┃ ┗ 📜protect-route.tsx
 ┣ 📂hooks
-┃ ┣ 📜use-api-fetch.tsx
+┃ ┣ 📜use-query-param.tsx
 ┣ 📂layouts
-┃ ┗ 📜default-layout.tsx
+┃ ┣ 📜default-layout.tsx
+┃ ┗ 📜login-layout.tsx
 ┣ 📂lib
+┃ ┣ 📂error
+┃ ┃ ┗ 📜error-handler.ts
+┃ ┣ 📜format.ts
 ┃ ┗ 📜utils.ts
 ┣ 📂pages
 ┃ ┣ 📂dashboard
@@ -62,15 +73,25 @@ The project is structured like so:
 ┃ ┃ ┗ 📜page.tsx
 ┃ ┣ 📂home
 ┃ ┃ ┗ 📜page.tsx
+┃ ┣ 📂not-found
+┃ ┃ ┗ 📜page.tsx
 ┃ ┣ 📂records
 ┃ ┃ ┣ 📂ui
 ┃ ┃ ┃ ┗ 📜table.tsx
 ┃ ┃ ┗ 📜page.tsx
-┃ ┗ 📂users
-┃ ┃ ┃ ┗ 📂id
-┃ ┃ ┃ ┣ 📂ui
-┃ ┃ ┃ ┃ ┗ 📜card.tsx
-┃ ┃ ┃ ┗ 📜page.tsx
+┃ ┣ 📂users
+┃ ┃ ┃ ┣ 📂id
+┃ ┃ ┃ ┃ ┣ 📂ui
+┃ ┃ ┃ ┃ ┃ ┣ 📜card.tsx
+┃ ┃ ┃ ┃ ┃ ┗ 📜table.tsx
+┃ ┗ ┗ ┗ ┗ 📜page.tsx
+┣ 📂shared
+┃ ┗ 📜types.ts
+┣ 📂supabase
+┃ ┣ 📜auth.ts
+┃ ┣ 📜client.ts
+┃ ┣ 📜database.types.ts
+┃ ┗ 📜global.types.ts
 ┣ 📜index.css
 ┗ 📜main.tsx
 ```
@@ -97,9 +118,10 @@ Shared functions usable by any feature/module/page, usually utils.
 
 #### ./src/pages
 
-The pages of the application. The directory structure maps to the route in the client. For example:
+The pages of the application. The directory structure maps to the route in the
+client. For example:
 
-```
+```plaintext
 ./src/pages/dashboard = /dashboard
 ./src/pages/home = /home
 ./src/pages/records = /records
@@ -107,9 +129,10 @@ The pages of the application. The directory structure maps to the route in the c
 
 Each directory such as `./src/pages/users` should have a structure of:
 
-```
+```plaintext
 📂users // name of the page, is '/users'
-┣ 📂id // optional, a subdirectory, the parameter like :id or :slug, example is '/users/1'
+┣ 📂id // optional, a subdirectory, the parameter like :id or :slug,
+example is '/users/1'
 ┃ ┣ 📂ui // page-specific components
 ┃ ┃ ┗ 📜card.tsx
 ┃ ┗ 📜page.tsx
@@ -119,44 +142,13 @@ Each directory such as `./src/pages/users` should have a structure of:
 ┗ 📜page.tsx
 ```
 
-### Backend structure
+#### ./src/shared
 
-```
-📂server
-┣ 📂db
-┃ ┣ 📜db.ts
-┃ ┣ 📜seed.attendance-records.ts
-┃ ┣ 📜seed.ts
-┃ ┗ 📜seed.users.ts
-┣ 📂lib
-┃ ┗ 📜utils.ts
-┣ 📂routes
-┃ ┣ 📜attendance-records.ts
-┃ ┣ 📜dashboard.ts
-┃ ┣ 📜routes.ts
-┃ ┗ 📜users.ts
-┗ 📜index.ts
-```
+Contains files usable by anywhere in the frontend.
 
-#### ./server/db
+#### ./src/supabase
 
-Contains files related to database.
-
-#### ./server/lib
-
-Contains shared functions usable anywhere in the backend.
-
-#### ./server/routes
-
-Contains the backend routes, usually representing the directory's structure as the route itself. For example:
-
-```
-./server/routes/attendance-records = /api/attendance-records
-./server/routes/dashboard = /api/dashboard
-./server/routes/users = /api/users
-```
-
-where each route can handle `GET`/`POST`/`PUT`/`PATCH`/`DELETE` requests.
+The supabase client, also contains types.
 
 ---
 
@@ -164,7 +156,7 @@ where each route can handle `GET`/`POST`/`PUT`/`PATCH`/`DELETE` requests.
 
 Clone the project by running:
 
-```
+```sh
 git clone https://github.com/ijagamino/attendance-tracker.git
 ```
 
@@ -172,7 +164,7 @@ git clone https://github.com/ijagamino/attendance-tracker.git
 
 Go to the folder where the project is installed:
 
-```
+```sh
 cd /path/to/project/attendance-tracker
 ```
 
@@ -180,50 +172,38 @@ cd /path/to/project/attendance-tracker
 
 Install dependencies by running `npm i`.
 
-```
+```sh
 npm i
 ```
 
 ### Backend setup
 
-This project uses MySQL, so make sure that a MySQL service is running. If you are unsure if a MySQL service is running, try `mysql -u root` in your terminal.
+This project uses supabase (PostgreSQL). To learn how supabase is used for
+local development, check out [supabase for local development](https://supabase.com/docs/guides/local-development).
 
+Docker is required for supabase local development.
+
+To start the server, run:
+
+```sh
+npx supabase start
 ```
-mysql -u root
-```
 
-### Database creation
+#### Database seeding
 
-Next, create the database by running `npm run db:create`.
+Run `npx supabase db migration up` then seed the database by running `npm run db:seed`.
 
-```
+```sh
+npx supabase db migration up
 npm run db:create
 ```
 
-This runs ./scripts/create-db.ps1 which contains
+### Frontend
 
-```
-$DatabaseName = "attendance_tracking_system"
+Run `npm run dev` to start local development on <http://localhost:5173>
 
-Write-Host "Creating database: $DatabaseName"
-
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS $DatabaseName;"
-
-Write-Host "Done!"
-```
-
-### Frontend & backend server
-
-Run `npm run dev` to start frontend on http://localhost:5173
-
-```
+```sh
 npm run dev
-```
-
-Then on another terminal, run `npm run server` to start the backend on http://localhost:3000
-
-```
-npm run server
 ```
 
 ---
@@ -232,13 +212,14 @@ npm run server
 
 ### Time In/Time Out Buttons
 
-#### Props used
+#### Props
 
 None
 
 #### Purpose
 
-The time in and time out buttons are buttons that records an authenticated user's attendance.
+The time in and time out buttons are buttons that records an authenticated
+user's attendance.
 
 #### Behavior
 
@@ -248,9 +229,9 @@ The time out button sends a `PATCH` request to `/api/attendance-records`.
 
 ### Data Table
 
-`./src/components/data-table.tsx`
+```typescript
+// ./src/components/data-table.tsx
 
-```
 export function DataTable<T extends Entity>({
   columns,
   rows,
@@ -264,33 +245,43 @@ export function DataTable<T extends Entity>({
 
 #### Props
 
-###### Columns
+##### Columns
 
-`columns`**required** `{label: string, value?: string}[]`
-
-Uses Column interface:
-
-```
+```typescript
 export interface Column {
   label: string
   value?: string
+  format?: (value: unknown, row: T) => ReactNode
 }
 ```
 
-Columns without a key of `value` (as it is optional) automatically derives the value of key `value` by camelCasing the label.
+Columns without a key of `value` (as it is optional) automatically derives the
+value of key `value` by camelCasing the label.
 
-```
+```typescript
 label: 'Time In'
 ```
 
 is computed as:
 
-```a
+```typescript
 label: 'Time In'
 value: 'timeIn'
 ```
 
 once passed to the component.
+
+`format` can also be optionally passed to format the value of the column,
+like so:
+
+```typescript
+{
+  label: 'Total Hours',
+  format: (_, row) => {
+    return formatInterval(row.total_hours as string)
+  },
+},
+```
 
 ##### Rows
 
@@ -304,7 +295,8 @@ It must extend the entity interface, as defined in `T extends Entity` found in `
 
 `onRowClick` _optional_ `(row: T) => {}`
 
-A callback function that is executed when a row is clicked, `row` can be passed as an argument.
+A callback function that is executed when a row is clicked, `row` can be passed
+as an argument.
 
 #### Purpose
 
@@ -313,7 +305,8 @@ Reusable table for displaying row data fetched from backend.
 #### Behavior
 
 Has table header that represents columns and table body that shows data.
-Inside the component is a column formatter function that derives the `value` key of a column based on its `label` if no `value` is set.
+Inside the component is a column formatter function that derives the `value` key
+of a column based on its `label` if no `value` is set.
 
 ### Pagination Buttons
 
@@ -321,7 +314,7 @@ Inside the component is a column formatter function that derives the `value` key
 
 #### Props
 
-```
+```typescript
 export default function PaginationButtons({
   page,
   totalPage?,
@@ -349,7 +342,8 @@ The total page, shows how many pages are based on data fetched.
 
 `onPageChange` **required** `(newPage: number) => void`
 
-A callback function that is called whenever any of the two buttons are used. `newPage` is passed as an argument.
+A callback function that is called whenever any of the two buttons are used.
+`newPage` is passed as an argument.
 
 #### Purpose
 
@@ -359,7 +353,7 @@ Used with `data-table` if `data-table` receive a paginated data.
 
 #### Behavior
 
-```
+```typescript
 function handlePrevious() {
   if (page > 1) onPageChange(page - 1)
 }
@@ -381,13 +375,14 @@ The second button changes current page to next page.
 
 `./src/hooks/use-query-param.ts`
 
-```
-export default function useQueryParam(initialState: Record<string, string>) { ... }
+```typescript
+export default function useQueryParam(initialState: Record<string, string>)
+{ ... }
 ```
 
 #### Props
 
-##### initialState 
+##### initialState
 
 `initialState` **required** `Record<string, string>`
 
@@ -399,7 +394,9 @@ Custom defined hook to handle query parameter change in the URL.
 
 #### Behavior
 
-Uses react-router's `useSearchParams`. Exposes a `setParam` function that respects the previous query parameters and adds (if not existing) or sets (if existing) the query parameter to the URL.
+Uses react-router's `useSearchParams`. Exposes a `setParam` function that
+respects the previous query parameters and adds (if not existing) or sets
+(if existing) the query parameter to the URL.
 
 For example:
 
@@ -410,50 +407,3 @@ For example:
 then
 
 `setParam('username', 'foo')` turns into `/url?page=5&username=foo`
-
-### useApiFetch
-
-`./src/hooks/use-api-fetch.ts`
-
-```
-export default function useApiFetch() {
-  ...
-  return useCallback(
-    async function apiFetch<T>(
-      url: RequestInfo | URL,
-      method: HttpMethod,
-      options?: RequestInit & {
-        searchParams?: URLSearchParams
-      },
-      retry: boolean = true
-    ): Promise<T> { ... }
-  , [...])
-}
-
-```
-
-#### Props
-
-##### URL
-
-`url` **required** `RequestInfo | URL`
-
-The URL to make a fetch request to.
-
-##### Method
-
-`method` **required** `'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'`
-
-The request method to be used.
-
-##### Options
-
-`options` _optional_ `RequestInit & { searchParams?: URLSearchParams }`
-
-Options to be passed to the fetch API.
-
-##### Retry
-
-`retry` _required_ `boolean`
-
-Determines whether requests should make a retry attempt.
