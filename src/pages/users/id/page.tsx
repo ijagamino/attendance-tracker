@@ -55,7 +55,7 @@ export default function UserIdPage() {
 
       query.range(rangeFrom, rangeTo)
 
-      const { data, count, error } = await query
+      const { data, count, error } = await query.overrideTypes<Array<{ total_hours: string }>>()
       if (error) throw new Error(error.message)
 
       setAttendanceRecords(data)
