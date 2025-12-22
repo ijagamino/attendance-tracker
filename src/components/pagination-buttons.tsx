@@ -28,7 +28,10 @@ export default function PaginationButtons({
       <Button
         onClick={handleNext}
         disabled={
-          totalPage === undefined || totalPage === null || page === totalPage
+          totalPage === undefined ||
+          totalPage === null ||
+          totalPage <= 0 ||
+          page === totalPage
         }
       >
         <ArrowRightIcon />

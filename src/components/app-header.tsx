@@ -8,14 +8,14 @@ import {
 import { ModeToggle } from '@/components/mode-toggle'
 import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button.tsx'
-import type { UserRole } from 'shared/types/api'
+import type { Role } from '@/supabase/global.types'
 import { LogIn, LogOut } from 'lucide-react'
 
 type NavItem = {
   title: string
   href: string
   isAuth: boolean
-  role?: UserRole
+  role?: Role
 }
 
 const navItems: NavItem[] = [
@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
 ]
 
 export default function AppHeader() {
-  const { isAuth, userRole, logout } = useAuth()
+  const { isAuth, role, logout } = useAuth()
   const navigate = useNavigate()
 
   return (
@@ -50,7 +50,7 @@ export default function AppHeader() {
           <NavigationMenuList>
             {navItems
               .filter((navItem) => {
-                if (navItem.role) return navItem.role === userRole
+                if (navItem.role) return navItem.role === role
 
                 return navItem.isAuth === isAuth
               })

@@ -7,61 +7,94 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { TypographyH1 } from '@/components/ui/typography'
-import { useApiFetch } from '@/hooks/use-api-fetch'
 import { toast } from 'sonner'
-import { getErrorMessage } from '@/lib/error-handler.ts'
-import { useCallback, useEffect, useState } from 'react'
-import type {
-  ApiResponse,
-  MyAttendanceRecordResponse,
-} from 'shared/types/api.ts'
+import { getErrorMessage } from '@/lib/error/error-handler.ts'
 import { Separator } from '@/components/ui/separator.tsx'
+import { supabase } from '@/supabase/client'
+import { useAuth } from '@/app/providers/auth-provider'
+import type { AttendanceRecord } from '@/supabase/global.types'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function HomePage() {
-  const apiFetch = useApiFetch()
+  const { userId, isLoading } = useAuth()
   const [myAttendanceRecord, setMyAttendanceRecord] =
-    useState<MyAttendanceRecordResponse>()
+    useState<AttendanceRecord>()
 
-  const getMyAttendanceRecord = useCallback(() => {
-    apiFetch<ApiResponse<MyAttendanceRecordResponse>>(
-      'me/attendance-records',
-      'GET'
-    )
-      .then((response) => {
-        setMyAttendanceRecord(response.data)
-      })
-      .catch((error) => {
-        const errorMessage = getErrorMessage(error)
+  const getMyAttendanceRecord = useCallback(async () => {
+    if (isLoading) return null
+    if (!userId) throw new Error('User ID is not available')
 
-        errorMessage.then((message) => console.error(message))
-      })
-  }, [apiFetch])
+    const [date] = new Date().toISOString().split('T')
+
+    try {
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select()
+        .eq('user_id', userId)
+        .eq('date', date)
+        .single()
+        .overrideTypes<{ total_hours: string }>()
+
+      if (!data) return
+      if (error) throw Error(error)
+      if (data) setMyAttendanceRecord(data)
+    } catch (error) {
+      console.error(error)
+    }
+  }, [userId, isLoading])
 
   async function submit(type: 'create' | 'update') {
     try {
+      if (!userId) throw new Error('User ID is not available')
+      const [date] = new Date().toISOString().split('T')
+
       if (type === 'create') {
-        await apiFetch('attendance-records', 'POST')
+        const { error } = await supabase
+          .from('attendance_records')
+          .insert({ user_id: userId })
+
+        if (error) throw new Error(error.message)
       } else {
-        await apiFetch('attendance-records', 'PATCH')
+        const { error } = await supabase
+          .from('attendance_records')
+          .update({ time_out: new Date().toISOString() })
+          .eq('user_id', userId)
+          .eq('date', date)
+
+        if (error) throw new Error(error.message)
       }
 
-      toast.success(`Attendance record ${type}d successfully`)
-      getMyAttendanceRecord()
+      await getMyAttendanceRecord()
     } catch (error) {
       const errorMessage = getErrorMessage(error)
+      console.error(error)
       toast.error(errorMessage)
     }
   }
 
   useEffect(() => {
-    getMyAttendanceRecord()
+    try {
+      getMyAttendanceRecord()
+    } catch (error) {
+      if (error instanceof Error) console.log('hello world')
+    }
   }, [getMyAttendanceRecord])
 
-  const [timeInHours, timeInMinutes] =
-    myAttendanceRecord?.timeIn.split(':') ?? []
+  const timeIn: string = myAttendanceRecord?.time_in
+    ? new Date(myAttendanceRecord?.time_in).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    : ''
 
-  const [timeOutHours, timeOutMinutes] =
-    myAttendanceRecord?.timeOut?.split(':') ?? []
+  const timeOut: string = myAttendanceRecord?.time_out
+    ? new Date(myAttendanceRecord?.time_out).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+    : ''
 
   return (
     <>
@@ -75,22 +108,26 @@ export default function HomePage() {
         <Separator />
 
         <CardContent>
-          <div className="grid grid-cols-2 h-24 justify-between [&>div]:text-center [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
+          <div className="grid grid-cols-2 h-36 justify-between [&>div]:text-center [&>div]:flex [&>div]:flex-col [&>div]:justify-between">
             <div>
-              <p>You timed in today at</p>
-              {myAttendanceRecord?.timeIn && (
-                <p className="text-6xl font-extrabold">
-                  {timeInHours}:{timeInMinutes}
-                </p>
+              {myAttendanceRecord?.time_in ? (
+                <>
+                  <p>You timed in today at</p>
+                  <p className="text-6xl font-extrabold">{timeIn}</p>
+                </>
+              ) : (
+                <p>You have not timed in yet</p>
               )}
             </div>
 
             <div>
-              <p>You timed out today at</p>
-              {myAttendanceRecord?.timeOut && (
-                <p className="text-6xl font-extrabold">
-                  {timeOutHours}:{timeOutMinutes}
-                </p>
+              {myAttendanceRecord?.time_out ? (
+                <>
+                  <p>You timed out today at</p>
+                  <p className="text-6xl font-extrabold">{timeOut}</p>
+                </>
+              ) : (
+                <p>You have not timed out yet</p>
               )}
             </div>
           </div>
@@ -100,7 +137,7 @@ export default function HomePage() {
           <Button
             className="w-full"
             onClick={() => submit('create')}
-            disabled={!!myAttendanceRecord?.timeIn}
+            disabled={!!myAttendanceRecord?.time_in}
           >
             Time In
           </Button>
@@ -108,7 +145,7 @@ export default function HomePage() {
             className="w-full"
             variant="secondary"
             onClick={() => submit('update')}
-            disabled={!myAttendanceRecord?.timeIn}
+            disabled={!myAttendanceRecord?.time_in}
           >
             Time Out
           </Button>

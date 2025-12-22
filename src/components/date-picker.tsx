@@ -1,4 +1,4 @@
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, CircleXIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Calendar } from './ui/calendar'
@@ -14,16 +14,30 @@ export default function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          id="date"
-          className="justify-between w-48 font-normal"
-        >
-          {date ? date.toLocaleDateString() : 'Select date'}
-          <ChevronDownIcon />
-        </Button>
-      </PopoverTrigger>
+      <div className="flex">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            id="date"
+            className="justify-between w-48 font-normal"
+          >
+            {date ? date.toLocaleDateString() : 'Select date'}
+            <ChevronDownIcon />
+          </Button>
+        </PopoverTrigger>
+
+        {date && (
+          <button>
+            <CircleXIcon
+              onClick={(e) => {
+                e.stopPropagation()
+                setDate(undefined)
+              }}
+            />
+          </button>
+        )}
+      </div>
+
       <PopoverContent className="w-auto p-0 overflow-hidden" align="start">
         <Calendar
           mode="single"

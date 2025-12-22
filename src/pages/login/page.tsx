@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -19,13 +20,13 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group.tsx'
 import { Eye, EyeOff } from 'lucide-react'
-import { getErrorMessage } from '@/lib/error-handler.ts'
+import { isAuthApiError } from '@supabase/supabase-js'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const [username, setUsername] = useState<string>('')
+  const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
 
   const [passwordInputType, setPasswordInputType] = useState<
@@ -36,11 +37,12 @@ export default function LoginPage() {
     e.preventDefault()
 
     try {
-      await login({ username, password })
-      navigate('/dashboard')
+      await login(email, password)
+      navigate('/')
     } catch (error) {
-      const errorMessage = await getErrorMessage(error)
-      toast.error(errorMessage)
+      if (isAuthApiError(error)) {
+        toast.error(error.message)
+      }
     }
   }
 
@@ -49,8 +51,19 @@ export default function LoginPage() {
       <Card className="max-w-md mx-auto">
         <CardHeader>
           <CardTitle>Log In</CardTitle>
+          <CardAction>
+            No account yet?{' '}
+            <span
+              className="underline cursor-pointer"
+              onClick={() => {
+                navigate('/register')
+              }}
+            >
+              Register
+            </span>
+          </CardAction>
           <CardDescription>
-            Enter your username and password to login
+            Enter your email and password to login
           </CardDescription>
         </CardHeader>
 
@@ -64,8 +77,8 @@ export default function LoginPage() {
                 id="username"
                 className="px-2 py-1 border-2 rounded border-teal-600/20 focus:border-teal-600 focus:outline-none"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
