@@ -4,7 +4,7 @@ import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
 import useQueryParam from '@/hooks/use-query-param.ts'
 import { formatDateStringToLocaleTime } from '@/lib/format'
 import { supabase } from '@/supabase/client'
-import type { DashboardData } from '@/supabase/global.types'
+import type { DashboardDailySummary, DashboardUserSummary } from '@/supabase/global.types'
 import { useEffect, useState } from 'react'
 import DashboardCard from './ui/card'
 import DashboardUserTable from './ui/table'
@@ -16,7 +16,8 @@ export default function DashboardPage() {
     limit: '5',
   })
 
-  const [dashboardData, setDashboardData] = useState<DashboardData>()
+  const [dashboardUserSummary, setDashboardUserSummary] = useState<DashboardUserSummary>()
+  const [dashboardDailySummary, setDashboardDailySummary] = useState<DashboardDailySummary>()
   const [totalPage, setTotalPage] = useState<number>()
 
   const page = Number(searchParams.get('page') ?? 1)
@@ -51,14 +52,14 @@ export default function DashboardPage() {
       const { data: dashboardUserSummary, count, error } = await query.overrideTypes<Array<{ total_rendered_hours: string }>>()
       if (error) throw error
 
+      if (dashboardUserSummary) {
+        setDashboardUserSummary({ users: dashboardUserSummary })
+      }
+
       if (
-        earliestTimeIn &&
-        attendees &&
-        lateAttendees &&
-        dashboardUserSummary
+        earliestTimeIn && attendees
       ) {
-        setDashboardData({
-          users: dashboardUserSummary,
+        setDashboardDailySummary({
           attendees,
           lateAttendees,
           earliestTimeIn: earliestTimeIn[0].min,
@@ -67,6 +68,7 @@ export default function DashboardPage() {
 
       setTotalPage(Math.ceil((count ?? 0) / limit))
     }
+
 
     fetchDashboard()
   }, [limit, name, page])
@@ -81,25 +83,25 @@ export default function DashboardPage() {
 
       <TypographyH2>Daily summary</TypographyH2>
 
-      {dashboardData ? (
+      {dashboardDailySummary ? (
         <div className="grid my-8 grid-cols-1 md:grid-cols-3 gap-4">
           <DashboardCard title="Attendees">
             <p className="font-extrabold text-center text-6xl">
-              {dashboardData?.attendees}
+              {dashboardDailySummary?.attendees}
             </p>
           </DashboardCard>
 
           <DashboardCard title="Late Attendees">
             <p className="font-extrabold text-center text-6xl">
-              {dashboardData?.lateAttendees}
+              {dashboardDailySummary?.lateAttendees}
             </p>
           </DashboardCard>
 
           <DashboardCard title="Earliest Time-in">
             <p className=" font-extrabold text-center text-6xl">
-              {dashboardData?.earliestTimeIn &&
+              {dashboardDailySummary?.earliestTimeIn &&
                 formatDateStringToLocaleTime(
-                  dashboardData?.earliestTimeIn.toString()
+                  dashboardDailySummary?.earliestTimeIn.toString()
                 )}
             </p>
           </DashboardCard>
@@ -116,8 +118,8 @@ export default function DashboardPage() {
 
       <TypographyH2>User summary</TypographyH2>
 
-      {dashboardData?.users ? (
-        <DashboardUserTable users={dashboardData.users} />
+      {dashboardUserSummary?.users ? (
+        <DashboardUserTable users={dashboardUserSummary.users} />
       ) : (
         <p>
           No attendance records found.
