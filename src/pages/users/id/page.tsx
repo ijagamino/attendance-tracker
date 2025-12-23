@@ -1,13 +1,16 @@
-import { TypographyH2 } from '@/components/ui/typography'
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
 import PaginationButtons from '@/components/pagination-buttons'
-import { UserProfileCard } from './ui/card'
-import { Frown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { TypographyH2, TypographyH4 } from '@/components/ui/typography'
 import useQueryParam from '@/hooks/use-query-param.ts'
 import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
 import { supabase } from '@/supabase/client'
 import type { AttendanceRecord, Profile } from '@/supabase/global.types'
+import { FileSpreadsheetIcon, Frown } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router'
+import { UserProfileCard } from './ui/card'
+import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
+import { exportXlsx } from '@/lib/export'
 
 export default function UserIdPage() {
   const [profile, setProfile] = useState<Profile>()
@@ -22,27 +25,8 @@ export default function UserIdPage() {
 
   const [totalPage, setTotalPage] = useState<number>()
 
-  const [totalRenderedHours, setTotalRenderedHours] = useState<
-    string | undefined
-  >('')
-
-  const { id } = useParams()
-
-  const page = Number(searchParams.get('page') ?? 1)
-  const name = searchParams.get('name') ?? ''
-  const limit = Number(searchParams.get('limit') ?? 5)
-
-  useEffect(() => {
-    async function getUserProfile(userId: string) {
-      const { data } = await supabase.from('profiles').select("first_name").eq('user_id', userId).single()
-
-      if (data) setProfile(data)
-    }
-
-    async function getUserAttendanceRecords(userId: string) {
-      const rangeFrom = (page - 1) * limit
-      const rangeTo = rangeFrom + limit - 1
-
+  const getUserAttendanceRecords = useCallback(
+    async (userId: string, { page, limit }: { page?: number, limit?: number } = {}) => {
       const query = supabase
         .from('attendance_records')
         .select('*, profiles!inner(user_id, first_name)', {
@@ -53,13 +37,32 @@ export default function UserIdPage() {
         query.eq('profiles.user_id', userId)
       }
 
-      query.range(rangeFrom, rangeTo)
+      if (page && limit) {
+        const rangeFrom = (page - 1) * limit
+        const rangeTo = rangeFrom + limit - 1
+        query.range(rangeFrom, rangeTo)
+      }
 
       const { data, count, error } = await query.overrideTypes<Array<{ total_hours: string }>>()
       if (error) throw new Error(error.message)
+      return { data, count }
 
-      setAttendanceRecords(data)
-      setTotalPage(Math.ceil((count ?? 0) / limit))
+    }, [])
+
+  const [totalRenderedHours, setTotalRenderedHours] = useState<
+    string | undefined
+  >('')
+
+  const { id } = useParams()
+
+  const page = Number(searchParams.get('page') ?? 1)
+  const limit = Number(searchParams.get('limit') ?? 5)
+
+  useEffect(() => {
+    async function getUserProfile(userId: string) {
+      const { data } = await supabase.from('profiles').select("first_name").eq('user_id', userId).single()
+
+      if (data) setProfile(data)
     }
 
     async function getTotalRenderedHours(userId: string) {
@@ -80,14 +83,57 @@ export default function UserIdPage() {
       }
     }
 
-    if (id) {
-      getUserProfile(id)
-      getUserAttendanceRecords(id)
-      getTotalRenderedHours(id)
-    }
-  }, [id, limit, name, page])
+    if (!id) return
+
+    getUserProfile(id)
+    getTotalRenderedHours(id)
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    getUserAttendanceRecords(id, { page, limit }).then(({ data, count }) => {
+      setAttendanceRecords(data)
+      setTotalPage(Math.ceil((count ?? 0) / limit))
+    })
+  }, [getUserAttendanceRecords, id, page, limit])
 
   const [hours, minutes, seconds] = totalRenderedHours?.split(':') ?? []
+
+  async function handleExport() {
+    exportXlsx<{
+      name: string
+      date: string | null
+      timeIn: string
+      timeOut: string
+      totalHours: string
+    }>({
+      worksheetName: "Attendance records",
+      columns: [
+        { label: 'Name', width: 20 },
+        { label: 'Date', width: 15 },
+        { label: 'Time In', width: 15 },
+        { label: 'Time Out', width: 15 },
+        { label: 'Total Hours', width: 10 }
+      ],
+      fileName: `${profile ? profile.first_name : ''}-attendance-records`,
+      callback: async () => {
+        if (!id) return []
+
+        const { data } = await getUserAttendanceRecords(id)
+
+        if (!data) return []
+
+        return data.map((attendanceRecord) => ({
+          name: attendanceRecord.profiles.first_name,
+          date: attendanceRecord.date,
+          timeIn: attendanceRecord.time_in ? formatDateStringToLocaleTime(attendanceRecord.time_in) : '',
+          timeOut: attendanceRecord.time_out ? formatDateStringToLocaleTime(attendanceRecord.time_out) : '',
+          totalHours: formatInterval(attendanceRecord.total_hours)
+        }))
+      }
+    })
+
+  }
 
   return (
     <>
@@ -110,6 +156,16 @@ export default function UserIdPage() {
             </div>
           )}
         </UserProfileCard>
+      </div>
+
+      <div className='px-2 py-4 flex justify-between items-center'>
+        <TypographyH4>Attendance Records</TypographyH4>
+        <Button onClick={() => {
+          handleExport()
+        }}>
+          <FileSpreadsheetIcon />
+          Export XLSX
+        </Button>
       </div>
 
       <UserAttendanceRecordTable attendanceRecords={attendanceRecords} />

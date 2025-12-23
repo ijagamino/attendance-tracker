@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 
-export function formatDateToLocal(date: string, dateFormat: string) {
+export function formatDateToLocal(date: string | Date, dateFormat: string) {
+  if (date === typeof Date) return format(date, dateFormat)
   return format(new Date(date).toString(), dateFormat)
 }
 
