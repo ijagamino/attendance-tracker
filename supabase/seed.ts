@@ -1,10 +1,17 @@
-import { createClient } from '@supabase/supabase-js'
+import 'dotenv/config.js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '../src/supabase/database.types.ts'
 
-const url = 'http://127.0.0.1:54321'
-const secretKey = 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz'
+const url = process.env.VITE_SUPABASE_URL
+const secretKey = process.env.VITE_SUPABASE_SECRET_KEY
 
+let supabase: SupabaseClient
 
-const supabase = createClient(url, secretKey)
+if (url && secretKey) {
+  supabase = createClient<Database>(url, secretKey)
+} else {
+  throw new Error('Cannot create client')
+}
 
 interface User {
   email: string
