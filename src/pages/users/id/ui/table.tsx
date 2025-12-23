@@ -34,7 +34,7 @@ export default function UserAttendanceRecordTable({
 
   return (
     <>
-      <DataTable<AttendanceRecord> columns={columns} rows={attendanceRecords} title="Attendance Records" />
+      <DataTable<AttendanceRecord> columns={columns} rows={attendanceRecords} />
     </>
   )
 }
