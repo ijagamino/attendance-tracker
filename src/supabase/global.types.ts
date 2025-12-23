@@ -8,12 +8,10 @@ export type AttendanceRecord =
     total_hours: string
   }
 
-export interface DashboardUserSummary {
-  users: {
-    first_name: string | null
-    total_rendered_hours: string
-    user_id: string | null
-  }[]
+export interface DashboardUserSummary extends Record<string, string | number | null> {
+  first_name: string | null
+  total_rendered_hours: string
+  user_id: string | null
 }
 
 export interface DashboardDailySummary {

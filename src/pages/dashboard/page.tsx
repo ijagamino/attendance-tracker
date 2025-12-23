@@ -16,7 +16,7 @@ export default function DashboardPage() {
     limit: '5',
   })
 
-  const [dashboardUserSummary, setDashboardUserSummary] = useState<DashboardUserSummary>()
+  const [dashboardUserSummary, setDashboardUserSummary] = useState<DashboardUserSummary[]>()
   const [dashboardDailySummary, setDashboardDailySummary] = useState<DashboardDailySummary>()
   const [totalPage, setTotalPage] = useState<number>()
 
@@ -53,7 +53,7 @@ export default function DashboardPage() {
       if (error) throw error
 
       if (dashboardUserSummary) {
-        setDashboardUserSummary({ users: dashboardUserSummary })
+        setDashboardUserSummary(dashboardUserSummary)
       }
 
       if (
@@ -118,8 +118,8 @@ export default function DashboardPage() {
 
       <TypographyH2>User summary</TypographyH2>
 
-      {dashboardUserSummary?.users ? (
-        <DashboardUserTable users={dashboardUserSummary.users} />
+      {dashboardUserSummary ? (
+        <DashboardUserTable users={dashboardUserSummary} />
       ) : (
         <p>
           No attendance records found.
