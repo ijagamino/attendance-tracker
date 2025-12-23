@@ -1,13 +1,16 @@
 import PaginationButtons from '@/components/pagination-buttons.tsx'
 import { Separator } from '@/components/ui/separator'
-import { TypographyH1, TypographyH2 } from '@/components/ui/typography'
+import { TypographyH1, TypographyH2, TypographyH4 } from '@/components/ui/typography'
 import useQueryParam from '@/hooks/use-query-param.ts'
-import { formatDateStringToLocaleTime } from '@/lib/format'
+import { formatDateStringToLocaleTime, formatDateToLocal, formatInterval } from '@/lib/format'
 import { supabase } from '@/supabase/client'
 import type { DashboardDailySummary, DashboardUserSummary } from '@/supabase/global.types'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import DashboardCard from './ui/card'
 import DashboardUserTable from './ui/table'
+import { Button } from '@/components/ui/button'
+import { exportXlsx } from '@/lib/export'
+import { FileSpreadsheetIcon } from 'lucide-react'
 
 export default function DashboardPage() {
   const { searchParams, setParam } = useQueryParam({
@@ -24,10 +27,31 @@ export default function DashboardPage() {
   const limit = Number(searchParams.get('limit') ?? 5)
   const name = searchParams.get('name') ?? ''
 
+  const getDashboardUserSummary = useCallback(
+    async ({ page, limit, name }: { page?: number, limit?: number, name?: string } = {}) => {
+
+      const query = supabase
+        .from('dashboard_user_summary')
+        .select('*', { count: 'exact' })
+
+      if (name) query.ilike('profiles.first_name', `%${name}%`)
+
+      if (page && limit) {
+        const rangeFrom = (page - 1) * limit
+        const rangeTo = rangeFrom + limit - 1
+        query.range(rangeFrom, rangeTo)
+      }
+
+      const { data, count, error } = await query.overrideTypes<Array<{ total_rendered_hours: string }>>()
+      if (error) throw error
+
+      return { data, count }
+    },
+    [],
+  )
+
   useEffect(() => {
     async function fetchDashboard() {
-      const rangeFrom = (page - 1) * limit
-      const rangeTo = rangeFrom + limit - 1
 
       const [date] = new Date().toISOString().split('T')
 
@@ -41,21 +65,6 @@ export default function DashboardPage() {
         .eq('date', date)
         .eq('status', 'Late')
 
-      const query = supabase
-        .from('dashboard_user_summary')
-        .select('*', { count: 'exact' })
-
-      if (name) query.ilike('profiles.first_name', `%${name}%`)
-
-      query.range(rangeFrom, rangeTo)
-
-      const { data: dashboardUserSummary, count, error } = await query.overrideTypes<Array<{ total_rendered_hours: string }>>()
-      if (error) throw error
-
-      if (dashboardUserSummary) {
-        setDashboardUserSummary(dashboardUserSummary)
-      }
-
       if (
         earliestTimeIn && attendees
       ) {
@@ -65,15 +74,48 @@ export default function DashboardPage() {
           earliestTimeIn: earliestTimeIn[0].min,
         })
       }
-
-      setTotalPage(Math.ceil((count ?? 0) / limit))
     }
-
-
     fetchDashboard()
-  }, [limit, name, page])
+  }, [])
+
+  useEffect(() => {
+    getDashboardUserSummary({ page, limit, name }).then(({ data, count }) => {
+      setTotalPage(Math.ceil((count ?? 0) / limit))
+      setDashboardUserSummary(data)
+    })
+  }, [getDashboardUserSummary, page, limit, name])
 
 
+  async function handleExport() {
+    exportXlsx<{
+      name: string | null
+      totalRenderedHours: string
+    }>({
+      worksheetName: "Attendance records",
+      columns: [
+        { label: 'Name', width: 20 },
+        { label: 'Total Rendered Hours', width: 15 },
+      ],
+      fileName: `${formatDateToLocal(new Date(), "yyyy-MM-dd")}-dashboard-user-summary`,
+      callback: async () => {
+        const { data } = await getDashboardUserSummary({ page, name })
+
+        if (!data) return []
+
+        function timeStringToSeconds(time: string) {
+          const [hours = 0, minutes = 0, seconds = 0] = time.split(':').map(Number);
+          return hours * 3600 + minutes * 60 + seconds;
+        }
+
+        return data
+          .filter(user => timeStringToSeconds(user.total_rendered_hours) > 0)
+          .map((user) => ({
+            name: user.first_name,
+            totalRenderedHours: formatInterval(user.total_rendered_hours)
+          }))
+      }
+    })
+  }
 
   return (
     <>
@@ -119,7 +161,19 @@ export default function DashboardPage() {
       <TypographyH2>User summary</TypographyH2>
 
       {dashboardUserSummary ? (
-        <DashboardUserTable users={dashboardUserSummary} />
+        <>
+          <div className='px-2 py-4 flex justify-between items-center'>
+            <TypographyH4>Attendance Records</TypographyH4>
+            <Button onClick={() => {
+              handleExport()
+            }}>
+              <FileSpreadsheetIcon />
+              Export XLSX
+            </Button>
+          </div>
+
+          <DashboardUserTable users={dashboardUserSummary} />
+        </>
       ) : (
         <p>
           No attendance records found.
