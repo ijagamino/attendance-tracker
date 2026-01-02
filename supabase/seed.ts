@@ -15,8 +15,9 @@ if (url && secretKey) {
 
 interface User {
   email: string
-  password: string
+  password?: string
   first_name: string
+  last_name: string
   role?: 'admin' | 'employee'
 }
 
@@ -24,39 +25,40 @@ async function seed() {
   const users: User[] = [
     {
       email: 'admin@email.com',
-      password: '123456',
       first_name: 'Admin',
+      last_name: 'User',
       role: 'admin',
     },
     {
-      email: 'ivan@email.com',
-      password: '123456',
-      first_name: 'Ivan',
+      email: 'ijagamino@gmail.com',
+      first_name: 'Ivan Joshua',
+      last_name: 'Gamino'
     },
     {
       email: 'edward@email.com',
-      password: '123456',
       first_name: 'Edward',
+      last_name: 'Gulmayo'
     },
     {
       email: 'charles@email.com',
-      password: '123456',
       first_name: 'Charles',
+      last_name: 'Valino'
     },
     {
       email: 'john@email.com',
-      password: '123456',
       first_name: 'John',
+      last_name: 'Doe'
     },
   ]
 
   for (const user of users) {
     const { data, error } = await supabase.auth.signUp({
       email: user.email,
-      password: user.password,
+      password: user.password ?? 'test.Abc123',
       options: {
         data: {
           first_name: user.first_name,
+          last_name: user.last_name,
           role: user.role ?? 'employee'
         }
       }
@@ -68,7 +70,7 @@ async function seed() {
     const userId = data.user.id
 
     console.log(
-      `Created user: ${user.email} (${userId}, ${user.first_name})`
+      `Created user: ${user.email} (${userId}, ${user.first_name}) ${user.last_name}`
     )
   }
 

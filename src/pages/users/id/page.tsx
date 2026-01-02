@@ -29,12 +29,12 @@ export default function UserIdPage() {
     async (userId: string, { page, limit }: { page?: number, limit?: number } = {}) => {
       const query = supabase
         .from('attendance_records')
-        .select('*, profiles!inner(user_id, first_name)', {
+        .select('*, profiles!inner(id, first_name)', {
           count: 'exact',
         })
 
       if (userId) {
-        query.eq('profiles.user_id', userId)
+        query.eq('profiles.id', userId)
       }
 
       if (page && limit) {
@@ -60,7 +60,7 @@ export default function UserIdPage() {
 
   useEffect(() => {
     async function getUserProfile(userId: string) {
-      const { data } = await supabase.from('profiles').select("first_name").eq('user_id', userId).single()
+      const { data } = await supabase.from('profiles').select("first_name").eq('id', userId).single()
 
       if (data) setProfile(data)
     }

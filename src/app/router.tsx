@@ -10,6 +10,8 @@ import RegisterPage from '@/pages/register/page'
 import ProtectRoute from '@/components/protect-route'
 import LoginRouteWrapper from '@/components/login-route-wrapper.tsx'
 import NotFoundPage from '@/pages/not-found/page'
+import ForgotPasswordPage from '@/pages/forgot-password/page'
+import UpdatePasswordPage from '@/pages/update-password/page'
 
 export default function AppRouter() {
   return (
@@ -40,6 +42,8 @@ export default function AppRouter() {
           <Route path="users">
             <Route path=":id" element={<UserIdPage />} />
           </Route>
+
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
         </Route>
 
         <Route
@@ -52,6 +56,7 @@ export default function AppRouter() {
         >
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
