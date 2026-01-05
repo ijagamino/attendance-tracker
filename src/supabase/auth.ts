@@ -1,18 +1,19 @@
 import { supabase } from '@/supabase/client'
 import type { Provider } from '@supabase/supabase-js'
-import dotenvFlow from 'dotenv-flow'
 
-dotenvFlow.config()
+export const config = {
+  runtime: 'nodejs18' // use Node 18+ with native ESM
+};
 
-function getURL() {
-  let url =
-    process.env.VERCEL_URL ??
-    'http://127.0.0.1:3000'
-  // Make sure to include `https://` when not localhost.
-  url = url.startsWith('http') ? url : `https://${url}`
-  // Make sure to include a trailing `/`.
-  return url
-}
+// function getURL() {
+//   let url =
+//     process.env.VERCEL_URL ??
+//     'http://127.0.0.1:3000'
+//   // Make sure to include `https://` when not localhost.
+//   url = url.startsWith('http') ? url : `https://${url}`
+//   // Make sure to include a trailing `/`.
+//   return url
+// }
 
 export async function signUpWithEmail({
   email,
@@ -63,14 +64,14 @@ export async function signOut() {
   if (error) throw error
 }
 
-export async function resetPasswordForEmail(email: string) {
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${getURL()}/update-password`
-  })
-
-  if (error) throw error
-  return data
-}
+// export async function resetPasswordForEmail(email: string) {
+//   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+//     redirectTo: `${getURL()}/update-password`
+//   })
+//
+//   if (error) throw error
+//   return data
+// }
 
 
 export async function updateUserPassword(password: string) {
