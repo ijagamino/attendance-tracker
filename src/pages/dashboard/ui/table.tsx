@@ -23,7 +23,7 @@ export default function DashboardUserTable({
     <>
       <DataTable<DashboardUserSummary>
         onRowClick={(row) => {
-          navigate(`/users/${row.user_id}`)
+          navigate(`/users/${row.id}`)
         }}
         columns={columns}
         rows={users}
