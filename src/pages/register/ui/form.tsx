@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 import { Label } from "@/components/ui/label"
 import { signUpWithEmail } from '@/supabase/auth'
-import { AuthWeakPasswordError, CustomAuthError, isAuthApiError } from '@supabase/supabase-js'
+import { CustomAuthError, isAuthApiError } from '@supabase/supabase-js'
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 import { useState } from 'react'
 import { NavLink } from "react-router"
