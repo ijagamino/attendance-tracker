@@ -1,11 +1,12 @@
 import { supabase } from '@/supabase/client'
 import type { Provider } from '@supabase/supabase-js'
+import dotenvFlow from 'dotenv-flow'
 
-console.log(import.meta.env.VERCEL_URL)
+dotenvFlow.config()
 
 function getURL() {
   let url =
-    import.meta.env.VERCEL_URL ??
+    process.env.VERCEL_URL ??
     'http://127.0.0.1:3000'
   // Make sure to include `https://` when not localhost.
   url = url.startsWith('http') ? url : `https://${url}`
