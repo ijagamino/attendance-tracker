@@ -1,22 +1,21 @@
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY // make sure this is the anon or service role key
+)
+
+function getURL() {
+  let url =
+    process.env.VERCEL_URL ??
+    'http://127.0.0.1:3000'
+  // Make sure to include `https://` when not localhost.
+  url = url.startsWith('http') ? url : `https://${url}`
+  // Make sure to include a trailing `/`.
+  return url
+}
 
 export default async function handler(req, res) {
-  const { createClient } = await import('@supabase/supabase-js')
-
-  const supabase = createClient(
-    process.env.VITE_SUPABASE_URL,
-    process.env.VITE_SUPABASE_PUBLISHABLE_KEY // make sure this is the anon or service role key
-  )
-
-  function getURL() {
-    let url =
-      process.env.VERCEL_URL ??
-      'http://127.0.0.1:3000'
-    // Make sure to include `https://` when not localhost.
-    url = url.startsWith('http') ? url : `https://${url}`
-    // Make sure to include a trailing `/`.
-    return url
-  }
-
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
