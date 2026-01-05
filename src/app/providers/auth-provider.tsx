@@ -68,7 +68,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsSessionLoading(false)
       setSession(session)
-      console.log(session)
     })
 
 
