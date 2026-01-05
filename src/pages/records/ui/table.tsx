@@ -41,7 +41,7 @@ export default function AttendanceRecordTable({
         columns={columns}
         rows={attendanceRecords}
         onRowClick={(row) => {
-          navigate(`/users/${row.user_id}`)
+          navigate(`/users/${row.id}`)
         }}
       />
     </>
