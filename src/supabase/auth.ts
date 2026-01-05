@@ -1,11 +1,10 @@
 import { supabase } from '@/supabase/client'
 import type { Provider } from '@supabase/supabase-js'
 
-console.log(import.meta.env.VERCEL_URL)
 
 function getURL() {
   let url =
-    import.meta.env.VERCEL_URL ??
+    import.meta.env.VITE_FRONTEND_URL ??
     'http://127.0.0.1:3000'
   // Make sure to include `https://` when not localhost.
   url = url.startsWith('http') ? url : `https://${url}`

@@ -1,5 +1,5 @@
-import dotenvFlow from 'dotenv-flow'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import dotenvFlow from 'dotenv-flow'
 import type { Database } from '../src/supabase/database.types.ts'
 
 dotenvFlow.config()
