@@ -1,7 +1,7 @@
-import { signInWithEmail } from '@/supabase/auth.ts'
+import { signInWithEmail as signInWithPassword, signInWithOAuth } from '@/supabase/auth.ts'
 import { supabase } from '@/supabase/client.ts'
 import type { Role } from '@/supabase/global.types'
-import type { Session } from '@supabase/supabase-js'
+import type { Provider, Session } from '@supabase/supabase-js'
 import {
   createContext,
   type ReactNode,
@@ -19,7 +19,8 @@ type AuthProviderState = {
   role: Role | null
   isLoading: boolean
   isAuth: boolean
-  login: (username: string, password: string) => Promise<void>
+  loginWithPassword: (username: string, password: string) => Promise<void>
+  loginWithOAuth: (provider: Provider) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -28,7 +29,8 @@ const initialState: AuthProviderState = {
   role: null,
   isLoading: true,
   isAuth: false,
-  login: async () => { },
+  loginWithPassword: async () => { },
+  loginWithOAuth: async () => { },
   logout: async () => { },
 }
 
@@ -45,9 +47,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuth = !!session
   const userId = session?.user.id
 
-  async function login(email: string, password: string) {
-    const { session } = await signInWithEmail(email, password)
-    setSession(session)
+  async function loginWithPassword(email: string, password: string) {
+    await signInWithPassword(email, password)
+    return
+  }
+
+  async function loginWithOAuth(provider: Provider) {
+    await signInWithOAuth(provider)
     return
   }
 
@@ -57,17 +63,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsSessionLoading(false)
-      setSession(session)
-    })
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsSessionLoading(false)
       setSession(session)
     })
+
 
     return () => subscription.unsubscribe()
   }, [])
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
-        .eq('user_id', session.user.id)
+        .eq('id', session.user.id)
         .single()
 
       if (!error) setRole(data?.role ?? null)
@@ -101,7 +103,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         role,
         isLoading,
         isAuth,
-        login,
+        loginWithPassword,
+        loginWithOAuth,
         logout,
       }}
     >

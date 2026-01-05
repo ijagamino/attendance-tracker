@@ -202,7 +202,7 @@ npm run db:seed
 
 ### Frontend
 
-Run `npm run dev` to start local development on <http://localhost:5173>
+Run `npm run dev` to start local development on <http://localhost:3000>
 
 ```sh
 npm run dev

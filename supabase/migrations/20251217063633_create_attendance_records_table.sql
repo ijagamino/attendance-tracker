@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS
     attendance_records
 (
     id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id     UUID REFERENCES profiles(user_id) ON DELETE CASCADE NOT NULL,
+    user_id     UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
     date        DATE DEFAULT CURRENT_DATE,
     time_in     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     time_out    TIMESTAMPTZ NULL,
@@ -49,7 +49,7 @@ USING (
   EXISTS (
     SELECT 1 
     FROM profiles p
-    WHERE (SELECT auth.uid()) = p.user_id 
+    WHERE (SELECT auth.uid()) = p.id
       AND p.role = 'admin'
   )
 

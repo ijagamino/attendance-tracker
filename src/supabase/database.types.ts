@@ -68,35 +68,35 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "dashboard_user_summary"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "attendance_records_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
       profiles: {
         Row: {
           first_name: string
-          id: number
+          id: string
+          last_name: string
           role: Database["public"]["Enums"]["app_role"]
-          user_id: string
         }
         Insert: {
           first_name: string
-          id?: never
+          id: string
+          last_name: string
           role: Database["public"]["Enums"]["app_role"]
-          user_id: string
         }
         Update: {
           first_name?: string
-          id?: never
+          id?: string
+          last_name?: string
           role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
         }
         Relationships: []
       }
@@ -105,14 +105,14 @@ export type Database = {
       dashboard_user_summary: {
         Row: {
           first_name: string | null
+          id: string | null
           total_rendered_hours: unknown
-          user_id: string | null
         }
         Relationships: []
       }
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "employee"
