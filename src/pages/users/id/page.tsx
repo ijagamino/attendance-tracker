@@ -5,15 +5,17 @@ import useQueryParam from '@/hooks/use-query-param.ts'
 import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
 import { supabase } from '@/supabase/client'
 import type { AttendanceRecord, Profile } from '@/supabase/global.types'
-import { FileSpreadsheetIcon, Frown } from 'lucide-react'
+import { ArrowDown, ArrowUp, FileSpreadsheetIcon, Frown } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { UserProfileCard } from './ui/card'
 import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
 import { exportXlsx } from '@/lib/export'
+import { setDate } from 'date-fns'
 
 export default function UserIdPage() {
   const [profile, setProfile] = useState<Profile>()
+  const [dateAscending, setDateAscending] = useState<boolean>(true)
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([])
@@ -37,6 +39,8 @@ export default function UserIdPage() {
         query.eq('profiles.id', userId)
       }
 
+      query.order('date', { ascending: dateAscending })
+
       if (page && limit) {
         const rangeFrom = (page - 1) * limit
         const rangeTo = rangeFrom + limit - 1
@@ -47,7 +51,7 @@ export default function UserIdPage() {
       if (error) throw new Error(error.message)
       return { data, count }
 
-    }, [])
+    }, [dateAscending])
 
   const [totalRenderedHours, setTotalRenderedHours] = useState<
     string | undefined
@@ -160,12 +164,27 @@ export default function UserIdPage() {
 
       <div className='px-2 py-4 flex justify-between items-center'>
         <TypographyH4>Attendance Records</TypographyH4>
-        <Button onClick={() => {
-          handleExport()
-        }}>
-          <FileSpreadsheetIcon />
-          Export XLSX
-        </Button>
+        <div className='px-2 gap-2 flex items-center'>
+          Sort by
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDateAscending(!dateAscending)
+            }}
+          >
+            Date
+            {dateAscending ?
+              (<ArrowUp />) :
+              (<ArrowDown />)
+            }
+          </Button>
+          <Button onClick={() => {
+            handleExport()
+          }}>
+            <FileSpreadsheetIcon />
+            Export XLSX
+          </Button>
+        </div>
       </div>
 
       <UserAttendanceRecordTable attendanceRecords={attendanceRecords} />
