@@ -1,5 +1,5 @@
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { updateUserPassword } from "@/supabase/auth"
@@ -40,6 +40,11 @@ export default function UpdatePasswordPage() {
   return (
     <>
       <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h1>Update password</h1>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           <form onSubmit={(e) => e.preventDefault()}>
             <FieldGroup>

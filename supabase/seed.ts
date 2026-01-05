@@ -1,6 +1,8 @@
-import 'dotenv/config.js'
+import dotenvFlow from 'dotenv-flow'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '../src/supabase/database.types.ts'
+
+dotenvFlow.config()
 
 const url = process.env.VITE_SUPABASE_URL
 const secretKey = process.env.VITE_SUPABASE_SECRET_KEY

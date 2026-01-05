@@ -6,7 +6,7 @@ console.log(import.meta.env.VERCEL_URL)
 function getURL() {
   let url =
     import.meta.env.VERCEL_URL ??
-    'http://localhost:3000/'
+    'http://127.0.0.1:3000'
   // Make sure to include `https://` when not localhost.
   url = url.startsWith('http') ? url : `https://${url}`
   // Make sure to include a trailing `/`.
@@ -64,7 +64,7 @@ export async function signOut() {
 
 export async function resetPasswordForEmail(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: getURL()
+    redirectTo: `${getURL()}/update-password`
   })
 
   if (error) throw error
