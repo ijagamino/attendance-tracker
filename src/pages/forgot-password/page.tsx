@@ -1,12 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { resetPasswordForEmail } from "@/supabase/auth"
+import { CustomAuthError, isAuthApiError } from "@supabase/supabase-js"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { NavLink } from "react-router"
-import { Spinner } from "@/components/ui/spinner"
-import { CustomAuthError, isAuthApiError } from "@supabase/supabase-js"
 import { toast } from "sonner"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState<string>('')
@@ -16,19 +17,11 @@ export default function ForgotPasswordPage() {
   async function handleForgotPassword() {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      await resetPasswordForEmail(email)
       setIsEmailed(true)
-
-      await res.json();
     } catch (error) {
-
       if (isAuthApiError(error)) toast.error(error.message)
       if (error instanceof CustomAuthError) toast.error(error.message)
-      console.error(error)
     } finally {
       setIsLoading(false)
     }
@@ -52,7 +45,6 @@ export default function ForgotPasswordPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={isEmailed}
                   />
                 </Field>
                 <Field>
