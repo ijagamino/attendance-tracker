@@ -11,11 +11,9 @@ import { useParams } from 'react-router'
 import { UserProfileCard } from './ui/card'
 import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
 import { exportXlsx } from '@/lib/export'
-import { setDate } from 'date-fns'
 
 export default function UserIdPage() {
   const [profile, setProfile] = useState<Profile>()
-  const [dateAscending, setDateAscending] = useState<boolean>(true)
   const [attendanceRecords, setAttendanceRecords] = useState<
     AttendanceRecord[]
   >([])
@@ -23,12 +21,25 @@ export default function UserIdPage() {
   const { searchParams, setParam } = useQueryParam({
     page: '1',
     limit: '5',
+    sort: 'date',
+    ascending: 'true'
   })
 
   const [totalPage, setTotalPage] = useState<number>()
 
   const getUserAttendanceRecords = useCallback(
-    async (userId: string, { page, limit }: { page?: number, limit?: number } = {}) => {
+    async (userId: string, {
+      page,
+      limit,
+      sort,
+      ascending
+    }: {
+      page?: number,
+      limit?: number,
+      sort?: string,
+      ascending?: boolean
+    } = {}
+    ) => {
       const query = supabase
         .from('attendance_records')
         .select('*, profiles!inner(id, first_name)', {
@@ -39,7 +50,9 @@ export default function UserIdPage() {
         query.eq('profiles.id', userId)
       }
 
-      query.order('date', { ascending: dateAscending })
+      if (sort) {
+        query.order(sort, { ascending })
+      }
 
       if (page && limit) {
         const rangeFrom = (page - 1) * limit
@@ -51,7 +64,7 @@ export default function UserIdPage() {
       if (error) throw new Error(error.message)
       return { data, count }
 
-    }, [dateAscending])
+    }, [])
 
   const [totalRenderedHours, setTotalRenderedHours] = useState<
     string | undefined
@@ -61,6 +74,8 @@ export default function UserIdPage() {
 
   const page = Number(searchParams.get('page') ?? 1)
   const limit = Number(searchParams.get('limit') ?? 5)
+  const sort = searchParams.get('sort') ?? ''
+  const ascending = searchParams.get('ascending') === 'true' ? true : false
 
   useEffect(() => {
     async function getUserProfile(userId: string) {
@@ -95,11 +110,11 @@ export default function UserIdPage() {
 
   useEffect(() => {
     if (!id) return
-    getUserAttendanceRecords(id, { page, limit }).then(({ data, count }) => {
+    getUserAttendanceRecords(id, { page, limit, sort, ascending }).then(({ data, count }) => {
       setAttendanceRecords(data)
       setTotalPage(Math.ceil((count ?? 0) / limit))
     })
-  }, [getUserAttendanceRecords, id, page, limit])
+  }, [getUserAttendanceRecords, id, page, limit, sort, ascending])
 
   const [hours, minutes, seconds] = totalRenderedHours?.split(':') ?? []
 
@@ -165,15 +180,16 @@ export default function UserIdPage() {
       <div className='px-2 py-4 flex justify-between items-center'>
         <TypographyH4>Attendance Records</TypographyH4>
         <div className='px-2 gap-2 flex items-center'>
-          Sort by
           <Button
             variant="outline"
             onClick={() => {
-              setDateAscending(!dateAscending)
+              setParam('sort', 'date')
+              setParam('ascending', (!ascending).toString())
             }}
           >
-            Date
-            {dateAscending ?
+            Sort by {" "}
+            {sort}
+            {ascending ?
               (<ArrowUp />) :
               (<ArrowDown />)
             }
@@ -185,7 +201,7 @@ export default function UserIdPage() {
             Export XLSX
           </Button>
         </div>
-      </div>
+      </div >
 
       <UserAttendanceRecordTable attendanceRecords={attendanceRecords} />
 
