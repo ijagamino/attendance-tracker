@@ -1,6 +1,18 @@
 import { supabase } from '@/supabase/client'
 import type { Provider } from '@supabase/supabase-js'
 
+console.log(import.meta.env.VERCEL_URL)
+
+function getURL() {
+  let url =
+    import.meta.env.VERCEL_URL ??
+    'http://localhost:3000/'
+  // Make sure to include `https://` when not localhost.
+  url = url.startsWith('http') ? url : `https://${url}`
+  // Make sure to include a trailing `/`.
+  return url
+}
+
 export async function signUpWithEmail({
   email,
   password,
@@ -50,10 +62,9 @@ export async function signOut() {
   if (error) throw error
 }
 
-
 export async function resetPasswordForEmail(email: string) {
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${import.meta.env.VITE_FRONTEND_URL}/update-password`
+    redirectTo: getURL()
   })
 
   if (error) throw error
