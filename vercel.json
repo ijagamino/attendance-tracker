@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/((?!@vite|@react-refresh|assets|.*\\.).*)",
+      "destination": "/"
+    }
+  ]
+}
