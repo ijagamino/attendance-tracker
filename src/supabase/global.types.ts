@@ -1,21 +1,28 @@
-import type { Enums, Tables } from './database.types'
+import type { Database, Enums, Tables } from './database.types'
 
 export type Role = Enums<'app_role'>
 
-export type Profile = Pick<Tables<'profiles'>, 'first_name'>
+export type Profile = Tables<'profiles'>
+
 export type AttendanceRecord =
   Omit<Tables<'attendance_records'>, 'total_hours'> & {
     total_hours: string
   }
 
-export interface DashboardUserSummary extends Record<string, string | number | null> {
-  first_name: string | null
-  total_rendered_hours: string
-  id: string | null
+export type AttendanceRecordWithProfile = AttendanceRecord & {
+  profiles: {
+    id: string
+    first_name: string
+  }
 }
 
-export interface DashboardDailySummary {
-  attendees: number
-  lateAttendees: number | null
-  earliestTimeIn: number
+export type UserProfileSummary = Omit<Database['public']['Views']['user_profile_summary']['Row'], 'total_rendered_hours'> & {
+  total_rendered_hours: string
 }
+
+export type DashboardUserSummary = Omit<Database['public']['Views']['dashboard_user_summary']['Row'], 'total_rendered_hours'> & {
+  total_rendered_hours: string
+}
+
+
+export type DashboardDailySummary = Database['public']['Views']['dashboard_daily_summary']['Row']

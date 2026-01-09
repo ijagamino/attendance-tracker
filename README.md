@@ -1,5 +1,37 @@
 # Attendance Tracking System
 
+<!--toc:start-->
+
+- [Attendance Tracking System](#attendance-tracking-system)
+  - [Setup](#setup)
+    - [Frontend structure](#frontend-structure)
+  - [Installation](#installation)
+  - [How to run locally](#how-to-run-locally)
+    - [Project dependencies](#project-dependencies)
+    - [Backend setup](#backend-setup)
+      - [Database seeding](#database-seeding)
+    - [Frontend](#frontend)
+  - [Components](#components)
+    - [Time In/Time Out Buttons](#time-intime-out-buttons)
+      - [Props](#props)
+      - [Purpose](#purpose)
+      - [Behavior](#behavior)
+    - [Data Table](#data-table)
+      - [Props](#props-1)
+        - [Columns](#columns)
+      - [Purpose](#purpose-1)
+      - [Behavior](#behavior-1)
+    - [Pagination Buttons](#pagination-buttons)
+      - [Props](#props-2)
+      - [Purpose](#purpose-2)
+      - [Behavior](#behavior-2)
+  - [Hooks](#hooks)
+    - [useQueryParam](#usequeryparam)
+      - [Props](#props-3)
+      - [Purpose](#purpose-3)
+      - [Behavior](#behavior-3)
+      <!--toc:end-->
+
 Simple attendance tracking system. Users will input their username to log their
 time-in and time-out attendance per day. Attendance records of all users and of
 a specific user can be seen. Shows daily summary on dashboard.
@@ -16,7 +48,9 @@ The project is structured like so:
 ┃ ...
 ┣ 📂src // frontend
 ┃ ┣ ...
-┃ 📜... // root files, usually configs
+┣ 📂supabase // local backend setup
+┃ ┣ ...
+┗ 📜... // root files, usually configs
 ```
 
 ### Frontend structure
@@ -25,132 +59,40 @@ The project is structured like so:
 📂src
 ┣ 📂app
 ┃ ┣ 📂providers
-┃ ┃ ┣ 📜auth-provider.tsx
-┃ ┃ ┗ 📜theme-provider.tsx
+┃ ┃ ┗ 📜... // application providers
 ┃ ┣ 📜index.tsx
 ┃ ┣ 📜provider.tsx
 ┃ ┗ 📜router.tsx
 ┣ 📂assets
-┃ ┗ 📜react.svg
+┃ ┗ 📜... // application assets
 ┣ 📂components
 ┃ ┣ 📂ui
-┃ ┃ ┣ 📜button.tsx
-┃ ┃ ┣ 📜calendar.tsx
-┃ ┃ ┣ 📜card.tsx
-┃ ┃ ┣ 📜dropdown-menu.tsx
-┃ ┃ ┣ 📜input-group.tsx
-┃ ┃ ┣ 📜input.tsx
-┃ ┃ ┣ 📜label.tsx
-┃ ┃ ┣ 📜navigation-menu.tsx
-┃ ┃ ┣ 📜popover.tsx
-┃ ┃ ┣ 📜separator.tsx
-┃ ┃ ┣ 📜sonner.tsx
-┃ ┃ ┣ 📜table.tsx
-┃ ┃ ┣ 📜textarea.tsx
-┃ ┃ ┗ 📜typography.tsx
-┃ ┣ 📜app-header.tsx
-┃ ┣ 📜date-table.tsx
-┃ ┣ 📜date-picker.tsx
-┃ ┣ 📜login-route-wrapper.tsx
-┃ ┣ 📜mode-toggle.tsx
-┃ ┣ 📜pagination-buttons.tsx
-┃ ┗ 📜protect-route.tsx
+┃ ┃ ┗ 📜... // shadcn primitive components
+┃ ┣ 📜... // reusable components
 ┣ 📂hooks
-┃ ┣ 📜use-query-param.tsx
+┃ ┣ 📜... // reusable hooks
 ┣ 📂layouts
-┃ ┣ 📜default-layout.tsx
-┃ ┗ 📜login-layout.tsx
+┃ ┗ 📜... // page layouts
 ┣ 📂lib
-┃ ┣ 📂error
-┃ ┃ ┗ 📜error-handler.ts
-┃ ┣ 📜format.ts
-┃ ┗ 📜utils.ts
+┃ ┣ 📂foo
+┃ ┃ ┗ 📜bar.ts
+┃ ┗ 📜... // reusable code
 ┣ 📂pages
-┃ ┣ 📂dashboard
+┃ ┣ 📂foo
+┃ ┃ ┣ 📂bar
+┃ ┃ ┃ ┣ 📂ui
+┃ ┃ ┃ ┃ ┗ 📜... // page-specific-components
+┃ ┃ ┃ ┗ 📜page.tsx
 ┃ ┃ ┣ 📂ui
-┃ ┃ ┃ ┣ 📜card.tsx
-┃ ┃ ┃ ┗ 📜table.tsx
-┃ ┃ ┗ 📜page.tsx
-┃ ┣ 📂home
-┃ ┃ ┗ 📜page.tsx
-┃ ┣ 📂not-found
-┃ ┃ ┗ 📜page.tsx
-┃ ┣ 📂records
-┃ ┃ ┣ 📂ui
-┃ ┃ ┃ ┗ 📜table.tsx
-┃ ┃ ┗ 📜page.tsx
-┃ ┣ 📂users
-┃ ┃ ┃ ┣ 📂id
-┃ ┃ ┃ ┃ ┣ 📂ui
-┃ ┃ ┃ ┃ ┃ ┣ 📜card.tsx
-┃ ┃ ┃ ┃ ┃ ┗ 📜table.tsx
-┃ ┗ ┗ ┗ ┗ 📜page.tsx
+┃ ┃ ┃ ┣ 📜... // page-specific-components
+┃ ┗ ┗ 📜page.tsx
 ┣ 📂shared
-┃ ┗ 📜types.ts
+┃ ┗ 📜... // shared types
 ┣ 📂supabase
-┃ ┣ 📜auth.ts
-┃ ┣ 📜client.ts
-┃ ┣ 📜database.types.ts
-┃ ┗ 📜global.types.ts
+┃ ┗ 📜... // supabase code
 ┣ 📜index.css
 ┗ 📜main.tsx
 ```
-
-#### ./src/app
-
-Contains the main application, providers and routes.
-
-#### ./src/assets
-
-Static files used by components, bundled on the build process.
-
-#### ./src/components
-
-Shared components usable by any feature/module/page.
-
-#### ./src/layouts
-
-Page layouts, used by routes.
-
-#### ./src/libs
-
-Shared functions usable by any feature/module/page, usually utils.
-
-#### ./src/pages
-
-The pages of the application. The directory structure maps to the route in the
-client. For example:
-
-```plaintext
-./src/pages/dashboard = /dashboard
-./src/pages/home = /home
-./src/pages/records = /records
-./src/pages/users = /users
-./src/pages/users/id/ = /users/[:id]
-```
-
-Each directory such as `./src/pages/users` should have a structure of:
-
-```plaintext
-📂users
-┣ 📂id // optional subdirectory, the parameter like :id or :slug,
-example is '/users/1'
-┃ ┣ 📂ui // page-specific components
-┃ ┃ ┗ 📜card.tsx
-┃ ┗ 📜page.tsx
-┣ 📂ui // page-specific-components
-┃ ┣ 📜card.tsx
-┃ ┗ 📜table.tsx
-┗ 📜page.tsx
-```
-
-#### ./src/shared
-
-Contains files usable by anywhere in the frontend.
-
-#### ./src/supabase
-
-The supabase client, also contains types.
 
 ---
 
@@ -183,7 +125,7 @@ npm i
 This project uses supabase (PostgreSQL). To learn how supabase is used for
 local development, check out [supabase for local development](https://supabase.com/docs/guides/local-development).
 
-Docker is required for supabase local development.
+Docker is required.
 
 To start the server, run:
 
@@ -202,10 +144,12 @@ npm run db:seed
 
 ### Frontend
 
-Run `npm run dev` to start local development on <http://localhost:3000>
+Run `vercel env pull` to pull local env variables then `vercel dev` to start
+local development on <http://localhost:3000>
 
 ```sh
-npm run dev
+vercel env pull
+vercel dev
 ```
 
 ---
@@ -234,18 +178,26 @@ The time out button sends a `PATCH` request to `/api/attendance-records`.
 ```typescript
 // ./src/components/data-table.tsx
 
-export function DataTable<T extends Entity>({
+export function DataTable<T extends Record<string, string | number | null>({
   columns,
   rows,
   onRowClick,
 }: {
-  columns: Column[]
+  columns: Column<T>[]
   rows: T[]
   onRowClick?: (row: T) => void
-}) { ... }
+}) {
+  ...
+}
 ```
 
 #### Props
+
+| Name       | Required? | Type        | Notes                                            |
+| ---------- | --------- | ----------- | ------------------------------------------------ |
+| columns    | Yes       | Column<T>[] | The columns of the table                         |
+| rows       | Yes       | T[]         | The rows of the teable                           |
+| onRowClick | Yes       | function    | Callback function executed when a row is clicked |
 
 ##### Columns
 
@@ -257,7 +209,7 @@ export interface Column {
 }
 ```
 
-Columns without a key of `value` (as it is optional) automatically derives the
+Columns without a key of `value` automatically derives the
 value of key `value` by camelCasing the label.
 
 ```typescript
@@ -285,21 +237,6 @@ like so:
 },
 ```
 
-##### Rows
-
-`rows` **required** `<T extends Entity>`
-
-The data to be displayed in the table body.
-
-It must extend the entity interface, as defined in `T extends Entity` found in `./shared/types/api.ts`
-
-##### OnRowClick
-
-`onRowClick` _optional_ `(row: T) => {}`
-
-A callback function that is executed when a row is clicked, `row` can be passed
-as an argument.
-
 #### Purpose
 
 Reusable table for displaying row data fetched from backend.
@@ -312,11 +249,9 @@ of a column based on its `label` if no `value` is set.
 
 ### Pagination Buttons
 
-`./src/components/pagination-buttons.tsx`
-
-#### Props
-
 ```typescript
+./src/components/pagination-buttons.tsx
+
 export default function PaginationButtons({
   page,
   totalPage?,
@@ -325,33 +260,24 @@ export default function PaginationButtons({
   page: number
   totalPage?: number
   onPageChange: (newPage: number) => void
-}) { ... }
+}) {
+  ...
+}
 ```
 
-##### Page
+#### Props
 
-`page` **required** `number`
-
-The current page, fetches data based on current page.
-
-##### TotalPage
-
-`totalPage` _optional_ `number`
-
-The total page, shows how many pages are based on data fetched.
-
-##### OnPageChange
-
-`onPageChange` **required** `(newPage: number) => void`
-
-A callback function that is called whenever any of the two buttons are used.
-`newPage` is passed as an argument.
+| Name         | Required? | Type     | Notes                                                             |
+| ------------ | --------- | -------- | ----------------------------------------------------------------- |
+| page         | Required  | number   | The current page                                                  |
+| totalPage    | Optional  | number   | Total page                                                        |
+| onPageChange | Required  | function | Callback function called whenever any of the two buttons are used |
 
 #### Purpose
 
-Reusable pagination buttons used with tables.
+Reusable pagination buttons for use with paginated datasets.
 
-Used with `data-table` if `data-table` receive a paginated data.
+Used with `data-table` if `data-table` receives a paginated data.
 
 #### Behavior
 
@@ -375,20 +301,19 @@ The second button changes current page to next page.
 
 ### useQueryParam
 
-`./src/hooks/use-query-param.ts`
-
 ```typescript
-export default function useQueryParam(initialState: Record<string, string>)
-{ ... }
+./src/hooks/use-query-param.ts
+
+export default function useQueryParam(initialState: Record<string, string>) {
+  ...
+}
 ```
 
 #### Props
 
-##### initialState
-
-`initialState` **required** `Record<string, string>`
-
-The initial state of the query parameters.
+| Name         | Required? | Type                   | Notes                             |
+| ------------ | --------- | ---------------------- | --------------------------------- |
+| initialState | Yes       | Record<string, string> | Initial state of query parameters |
 
 #### Purpose
 

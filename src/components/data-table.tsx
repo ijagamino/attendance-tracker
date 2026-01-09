@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/table'
 import type { Column } from '@/shared/types'
 import _ from 'lodash'
+import type { Key } from 'react'
 
 export function DataTable<
-  T extends Record<string, string | number | null>,
+  T extends Record<string, string | number | boolean | null>,
 >({
   columns,
   rows,
@@ -48,20 +49,26 @@ export function DataTable<
         )}
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.id} onClick={() => onRowClick?.(row)}>
+            <TableRow key={row.id as Key} onClick={() => onRowClick?.(row)}>
               {columns &&
                 formattedColumns.map((column) => (
                   <TableCell key={column.value ?? column.label}>
                     {(() => {
                       const rawValue = column.value
-                        ? String(_.get(row, column.value))
+                        ? _.get(row, column.value)
                         : undefined
+
+                      if (column.Cell) {
+                        return column.Cell(row, rawValue)
+                      }
 
                       if (column.format) {
                         return column.format(rawValue, row)
                       }
 
-                      return rawValue !== null ? String(rawValue) : '-'
+                      if (rawValue === undefined || rawValue === null) return '-'
+
+                      return rawValue.toString()
                     })()}
                   </TableCell>
                 ))}

@@ -1,164 +1,186 @@
 import PaginationButtons from '@/components/pagination-buttons'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { TypographyH2, TypographyH4 } from '@/components/ui/typography'
 import useQueryParam from '@/hooks/use-query-param.ts'
 import UserAttendanceRecordTable from '@/pages/users/id/ui/table.tsx'
-import { supabase } from '@/supabase/client'
-import type { AttendanceRecord, Profile } from '@/supabase/global.types'
-import { ArrowDown, ArrowUp, FileSpreadsheetIcon, Frown } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { ArrowDown, ArrowUp, FileSpreadsheetIcon, Frown, MoreHorizontal, Smile, TimerOff } from 'lucide-react'
 import { useParams } from 'react-router'
 import { UserProfileCard } from './ui/card'
-import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
-import { exportXlsx } from '@/lib/export'
+import useUserProfile from './hooks/use-user-profile'
+import useUserProfileSummary from './hooks/use-user-profile-summary'
+import useUserAttendanceRecords from './hooks/use-user-attendance-records'
+import markUserAbsent from './actions/mark-user-absent'
+import exportAttendanceRecords from './actions/export-attendance-records'
+import { Spinner } from '@/components/ui/spinner'
+import { useState } from 'react'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { supabase } from '@/supabase/client'
+import type { Role } from '@/supabase/global.types'
+import { toast } from 'sonner'
+import _ from 'lodash'
 
 export default function UserIdPage() {
-  const [profile, setProfile] = useState<Profile>()
-  const [attendanceRecords, setAttendanceRecords] = useState<
-    AttendanceRecord[]
-  >([])
-
+  const { id } = useParams()
   const { searchParams, setParam } = useQueryParam({
     page: '1',
     limit: '5',
     sort: 'date',
     ascending: 'true'
   })
-
-  const [totalPage, setTotalPage] = useState<number>()
-
-  const getUserAttendanceRecords = useCallback(
-    async (userId: string, {
-      page,
-      limit,
-      sort,
-      ascending
-    }: {
-      page?: number,
-      limit?: number,
-      sort?: string,
-      ascending?: boolean
-    } = {}
-    ) => {
-      const query = supabase
-        .from('attendance_records')
-        .select('*, profiles!inner(id, first_name)', {
-          count: 'exact',
-        })
-
-      if (userId) {
-        query.eq('profiles.id', userId)
-      }
-
-      if (sort) {
-        query.order(sort, { ascending })
-      }
-
-      if (page && limit) {
-        const rangeFrom = (page - 1) * limit
-        const rangeTo = rangeFrom + limit - 1
-        query.range(rangeFrom, rangeTo)
-      }
-
-      const { data, count, error } = await query.overrideTypes<Array<{ total_hours: string }>>()
-      if (error) throw new Error(error.message)
-      return { data, count }
-
-    }, [])
-
-  const [totalRenderedHours, setTotalRenderedHours] = useState<
-    string | undefined
-  >('')
-
-  const { id } = useParams()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [selectedRole, setSelectedRole] = useState<Role | undefined>()
 
   const page = Number(searchParams.get('page') ?? 1)
   const limit = Number(searchParams.get('limit') ?? 5)
   const sort = searchParams.get('sort') ?? ''
   const ascending = searchParams.get('ascending') === 'true' ? true : false
 
-  useEffect(() => {
-    async function getUserProfile(userId: string) {
-      const { data } = await supabase.from('profiles').select("first_name").eq('id', userId).single()
-
-      if (data) setProfile(data)
-    }
-
-    async function getTotalRenderedHours(userId: string) {
-      const query = supabase
-        .from('attendance_records')
-        .select('total_hours.sum()')
-
-      if (userId) {
-        query.eq('user_id', userId)
-      }
-
-      const { data, error } = await query.single()
-      if (error) throw new Error(error.message)
-
-      if (data) {
-        const formattedTime = data.sum.toString().split('.')[0]
-        setTotalRenderedHours(formattedTime)
-      }
-    }
-
-    if (!id) return
-
-    getUserProfile(id)
-    getTotalRenderedHours(id)
-  }, [id])
-
-  useEffect(() => {
-    if (!id) return
-    getUserAttendanceRecords(id, { page, limit, sort, ascending }).then(({ data, count }) => {
-      setAttendanceRecords(data)
-      setTotalPage(Math.ceil((count ?? 0) / limit))
-    })
-  }, [getUserAttendanceRecords, id, page, limit, sort, ascending])
-
-  const [hours, minutes, seconds] = totalRenderedHours?.split(':') ?? []
+  const { profile, toggleActive, refetch: refetchUserProfile } = useUserProfile(id)
+  const { userAttendanceRecords, setUserAttendanceRecords, getUserAttendanceRecords, totalPage } = useUserAttendanceRecords({ userId: id, page, limit })
+  const { userProfileSummary, hours, minutes, seconds, refetch: refetchUserProfileSummary } = useUserProfileSummary(id)
 
   async function handleExport() {
-    exportXlsx<{
-      name: string
-      date: string | null
-      timeIn: string
-      timeOut: string
-      totalHours: string
-    }>({
-      worksheetName: "Attendance records",
-      columns: [
-        { label: 'Name', width: 20 },
-        { label: 'Date', width: 15 },
-        { label: 'Time In', width: 15 },
-        { label: 'Time Out', width: 15 },
-        { label: 'Total Hours', width: 10 }
-      ],
-      fileName: `${profile ? profile.first_name : ''}-attendance-records`,
-      callback: async () => {
-        if (!id) return []
+    if (!id) return
+    await exportAttendanceRecords({ userId: id, profile, getUserAttendanceRecords })
+  }
 
-        const { data } = await getUserAttendanceRecords(id)
+  async function handleMarkAbsent() {
+    if (!id) return
 
-        if (!data) return []
+    setIsLoading(true)
+    const data = await markUserAbsent(id)
+    setIsLoading(false)
 
-        return data.map((attendanceRecord) => ({
-          name: attendanceRecord.profiles.first_name,
-          date: attendanceRecord.date,
-          timeIn: attendanceRecord.time_in ? formatDateStringToLocaleTime(attendanceRecord.time_in) : '',
-          timeOut: attendanceRecord.time_out ? formatDateStringToLocaleTime(attendanceRecord.time_out) : '',
-          totalHours: formatInterval(attendanceRecord.total_hours)
-        }))
-      }
-    })
+    if (data) {
+      setUserAttendanceRecords(data)
+      refetchUserProfileSummary()
+    }
+  }
 
+  async function assignRole() {
+    if (!id) return
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: selectedRole })
+      .eq('id', id)
+
+    if (error) {
+      toast.error(error.message)
+      return
+    }
+    refetchUserProfile()
   }
 
   return (
     <>
-      <TypographyH2>{profile?.first_name}'s attendance records</TypographyH2>
-      <div className="grid my-2 max-w-72">
-        <UserProfileCard title="Total hours rendered this month">
+      <div className='flex items-center gap-2 justify-between'>
+        <div className='flex items-center gap-2'>
+          <TypographyH2>{profile?.first_name}</TypographyH2>
+          {profile?.role &&
+            <Badge>{_.capitalize(profile.role)}</Badge>
+          }
+          {profile?.is_active
+            ? <Badge>Active</Badge>
+            : <Badge variant="destructive">Inactive</Badge>
+          }
+        </div>
+
+        <ButtonGroup>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={() => { }}
+              >
+                <TimerOff />
+                Mark as absent today
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm action</DialogTitle>
+                <DialogDescription>Are you sure you want to mark {profile?.first_name} as absent?</DialogDescription>
+              </DialogHeader>
+
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={() => handleMarkAbsent()}>
+                  {isLoading &&
+                    <Spinner />
+                  }
+                  Confirm
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon">
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => toggleActive()}>
+                Set as {profile?.is_active ? 'inactive' : 'active'}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault()
+                }}>
+                <Dialog>
+                  <DialogTrigger>
+                    Change user role
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Assign role</DialogTitle>
+                      <DialogDescription>You are about to change {profile?.first_name}'s role.</DialogDescription>
+                    </DialogHeader>
+                    <Select
+                      onValueChange={(value) => setSelectedRole(value as Role)}
+                    >
+                      <SelectTrigger className='w-full'>
+                        <SelectValue placeholder="Assign role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Roles</SelectLabel>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="employee">Employee</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <Button onClick={() => assignRole()}>
+                        {isLoading &&
+                          <Spinner />
+                        }
+                        Confirm
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </ButtonGroup>
+      </div>
+
+      <TypographyH2>Monthly summary</TypographyH2>
+      <div className="grid my-2 grid-cols-3 gap-4">
+        <UserProfileCard title="Total hours rendered">
           {!hours && !minutes && !seconds ? (
             <Frown className="mx-auto" size={64} />
           ) : (
@@ -175,11 +197,29 @@ export default function UserIdPage() {
             </div>
           )}
         </UserProfileCard>
+        <UserProfileCard title="Total lates">
+          {!userProfileSummary?.total_lates || userProfileSummary.total_lates <= 0 ? (
+            <Smile className="mx-auto" size={64} />
+          ) : (
+            <p className="font-extrabold text-center text-6xl">
+              {userProfileSummary?.total_lates}
+            </p>
+          )}
+        </UserProfileCard>
+        <UserProfileCard title="Total absents">
+          {!userProfileSummary?.total_absents || userProfileSummary.total_absents <= 0 ? (
+            <Smile className="mx-auto" size={64} />
+          ) : (
+            <p className="font-extrabold text-center text-6xl">
+              {userProfileSummary?.total_absents}
+            </p>
+          )}
+        </UserProfileCard>
       </div>
 
-      <div className='px-2 py-4 flex justify-between items-center'>
+      <div className='py-4 flex justify-between items-center'>
         <TypographyH4>Attendance Records</TypographyH4>
-        <div className='px-2 gap-2 flex items-center'>
+        <div className='gap-2 flex items-center'>
           <Button
             variant="outline"
             onClick={() => {
@@ -203,7 +243,11 @@ export default function UserIdPage() {
         </div>
       </div >
 
-      <UserAttendanceRecordTable attendanceRecords={attendanceRecords} />
+      <UserAttendanceRecordTable
+        userAttendanceRecords={userAttendanceRecords}
+        setUserAttendanceRecords={setUserAttendanceRecords}
+        onUserAttendanceRecordUpdate={refetchUserProfileSummary}
+      />
 
       <PaginationButtons
         page={page}

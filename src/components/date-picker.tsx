@@ -3,6 +3,7 @@ import { Button } from './ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Calendar } from './ui/calendar'
 import { useState } from 'react'
+import { ButtonGroup } from './ui/button-group'
 
 export default function DatePicker({
   onSelectDate,
@@ -15,27 +16,31 @@ export default function DatePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <div className="flex">
-        <PopoverTrigger asChild>
+        <ButtonGroup>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              id="date"
+              className="justify-between w-48 font-normal"
+            >
+              {date ? date.toLocaleDateString() : 'Select date'}
+              <ChevronDownIcon />
+            </Button>
+          </PopoverTrigger>
           <Button
             variant="outline"
-            id="date"
-            className="justify-between w-48 font-normal"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelectDate(undefined)
+              setDate(undefined)
+            }}
+            disabled={!date}
           >
-            {date ? date.toLocaleDateString() : 'Select date'}
-            <ChevronDownIcon />
-          </Button>
-        </PopoverTrigger>
-
-        {date && (
-          <button>
             <CircleXIcon
-              onClick={(e) => {
-                e.stopPropagation()
-                setDate(undefined)
-              }}
             />
-          </button>
-        )}
+          </Button>
+        </ButtonGroup>
+
       </div>
 
       <PopoverContent className="w-auto p-0 overflow-hidden" align="start">

@@ -12,6 +12,8 @@ import LoginRouteWrapper from '@/components/login-route-wrapper.tsx'
 import NotFoundPage from '@/pages/not-found/page'
 import ForgotPasswordPage from '@/pages/forgot-password/page'
 import UpdatePasswordPage from '@/pages/update-password/page'
+import SettingsPage from '@/pages/settings/page'
+import UsersPage from '@/pages/users/page'
 
 export default function AppRouter() {
   return (
@@ -25,7 +27,12 @@ export default function AppRouter() {
             </ProtectRoute>
           }
         >
-          <Route index element={<HomePage />} />
+          <Route
+            index
+            element={
+              <HomePage />
+            }
+          />
           <Route
             path="dashboard"
             element={
@@ -39,11 +46,18 @@ export default function AppRouter() {
             <Route index element={<RecordsPage />} />
           </Route>
 
+          <Route path="settings" element={<SettingsPage />} />
+
           <Route path="users">
-            <Route path=":id" element={<UserIdPage />} />
+            <Route index element={<UsersPage />} />
+
+            <Route path=":id">
+              <Route index element={<UserIdPage />} />
+            </Route>
           </Route>
 
-          <Route path="/update-password" element={<UpdatePasswordPage />} />
+          <Route path="update-password" element={<UpdatePasswordPage />} />
+
         </Route>
 
         <Route

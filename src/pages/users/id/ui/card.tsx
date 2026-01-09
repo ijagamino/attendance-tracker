@@ -11,7 +11,7 @@ export function UserProfileCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-center text-2xl">{title}</CardTitle>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
