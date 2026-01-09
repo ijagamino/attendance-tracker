@@ -10,6 +10,7 @@ import { useDashboardDailySummary } from './hooks/use-dashboard-daily-summary'
 import { useDashboardUserSummary } from './hooks/use-dashboard-user-summary'
 import useUserCount from './hooks/use-user-count'
 import exportAttendanceRecords from './actions/export-attendance-records'
+import { formatDateStringToLocaleTime } from '@/lib/format'
 
 export default function DashboardPage() {
   const { searchParams, setParam } = useQueryParam({
@@ -67,8 +68,8 @@ export default function DashboardPage() {
           {dashboardDailySummary?.earliest_time_in ?
             (
               <p className=" font-extrabold text-center text-6xl">
-                formatDateStringToLocaleTime(
-                dashboardDailySummary?.earliest_time_in)
+                {formatDateStringToLocaleTime(
+                  dashboardDailySummary?.earliest_time_in)}
               </p>
             ) : (
               <Frown className="mx-auto" size={64} />
