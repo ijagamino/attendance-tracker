@@ -38,6 +38,7 @@ export type Database = {
         Row: {
           date: string | null
           id: number
+          remarks: string | null
           status: string | null
           time_in: string | null
           time_out: string | null
@@ -47,6 +48,7 @@ export type Database = {
         Insert: {
           date?: string | null
           id?: never
+          remarks?: string | null
           status?: string | null
           time_in?: string | null
           time_out?: string | null
@@ -56,6 +58,7 @@ export type Database = {
         Update: {
           date?: string | null
           id?: never
+          remarks?: string | null
           status?: string | null
           time_in?: string | null
           time_out?: string | null
@@ -77,24 +80,34 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attendance_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_summary"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
         Row: {
           first_name: string
           id: string
+          is_active: boolean | null
           last_name: string
           role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
           first_name: string
           id: string
+          is_active?: boolean | null
           last_name: string
           role: Database["public"]["Enums"]["app_role"]
         }
         Update: {
           first_name?: string
           id?: string
+          is_active?: boolean | null
           last_name?: string
           role?: Database["public"]["Enums"]["app_role"]
         }
@@ -102,10 +115,31 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_daily_summary: {
+        Row: {
+          absent_count: number | null
+          earliest_time_in: string | null
+          late_count: number | null
+          time_in_count: number | null
+          time_out_count: number | null
+        }
+        Relationships: []
+      }
       dashboard_user_summary: {
         Row: {
           first_name: string | null
           id: string | null
+          total_absents: number | null
+          total_lates: number | null
+          total_rendered_hours: unknown
+        }
+        Relationships: []
+      }
+      user_profile_summary: {
+        Row: {
+          id: string | null
+          total_absents: number | null
+          total_lates: number | null
           total_rendered_hours: unknown
         }
         Relationships: []
@@ -113,6 +147,10 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      old_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
     }
     Enums: {
       app_role: "admin" | "employee"

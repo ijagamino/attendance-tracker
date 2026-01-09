@@ -1,6 +1,6 @@
-import {} from 'react-day-picker'
-import { Button } from './ui/button'
-import { ArrowLeftIcon, ArrowRightIcon } from 'lucide-react'
+import { } from 'react-day-picker'
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from './ui/pagination'
+import { cn } from '@/lib/utils'
 
 export default function PaginationButtons({
   page,
@@ -20,22 +20,41 @@ export default function PaginationButtons({
   }
 
   return (
-    <div className="flex justify-center w-full gap-2 mx-auto mt-2">
-      <Button onClick={handlePrevious} disabled={page <= 1}>
-        <ArrowLeftIcon />
-      </Button>
+    <Pagination className="mt-2">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            className={cn("cursor-pointer",
+              page <= 1 ? "pointer-events-none opacity-50" : undefined
+            )}
+            tabIndex={page <= 1 ? -1 : undefined}
+            aria-disabled={page <= 1}
+            onClick={handlePrevious}
+          />
+        </PaginationItem>
 
-      <Button
-        onClick={handleNext}
-        disabled={
-          totalPage === undefined ||
-          totalPage === null ||
-          totalPage <= 0 ||
-          page === totalPage
-        }
-      >
-        <ArrowRightIcon />
-      </Button>
-    </div>
+        <PaginationItem>
+          <PaginationNext
+            className={cn("cursor-pointer",
+              (totalPage === undefined ||
+                totalPage === null ||
+                totalPage <= 0 ||
+                page === totalPage
+              ) ? "pointer-events-none opacity-50" : undefined
+            )}
+            tabIndex={(totalPage === undefined ||
+              totalPage === null ||
+              totalPage <= 0 ||
+              page === totalPage) ? +1 : undefined}
+            aria-disabled={
+              totalPage === undefined ||
+              totalPage === null ||
+              totalPage <= 0 ||
+              page === totalPage
+            }
+            onClick={handleNext} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   )
 }

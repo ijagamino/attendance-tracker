@@ -1,3 +1,4 @@
+import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -6,14 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { TypographyH1 } from '@/components/ui/typography'
-import { toast } from 'sonner'
-import { getErrorMessage } from '@/lib/error/error-handler.ts'
 import { Separator } from '@/components/ui/separator.tsx'
+import { TypographyH1 } from '@/components/ui/typography'
 import { supabase } from '@/supabase/client'
-import { useAuth } from '@/app/providers/auth-provider'
 import type { AttendanceRecord } from '@/supabase/global.types'
+import { PostgrestError } from '@supabase/supabase-js'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 export default function HomePage() {
   const { userId, isLoading } = useAuth()
@@ -36,7 +36,7 @@ export default function HomePage() {
         .overrideTypes<{ total_hours: string }>()
 
       if (!data) return
-      if (error) throw Error(error)
+      if (error) throw error
       if (data) setMyAttendanceRecord(data)
     } catch (error) {
       console.error(error)
@@ -53,7 +53,7 @@ export default function HomePage() {
           .from('attendance_records')
           .insert({ user_id: userId })
 
-        if (error) throw new Error(error.message)
+        if (error) throw error
       } else {
         const { error } = await supabase
           .from('attendance_records')
@@ -61,23 +61,19 @@ export default function HomePage() {
           .eq('user_id', userId)
           .eq('date', date)
 
-        if (error) throw new Error(error.message)
+        if (error) throw error
       }
 
       await getMyAttendanceRecord()
     } catch (error) {
-      const errorMessage = getErrorMessage(error)
-      console.error(error)
-      toast.error(errorMessage)
+      if (error instanceof PostgrestError) {
+        toast.error(error.message)
+      }
     }
   }
 
   useEffect(() => {
-    try {
-      getMyAttendanceRecord()
-    } catch (error) {
-      if (error instanceof Error) console.log('hello world')
-    }
+    getMyAttendanceRecord()
   }, [getMyAttendanceRecord])
 
   const timeIn: string = myAttendanceRecord?.time_in

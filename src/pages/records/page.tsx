@@ -75,6 +75,9 @@ export default function RecordsPage() {
           <Label htmlFor="date">Filter by date</Label>
           <DatePicker
             onSelectDate={(selectedDate) => {
+              if (!selectedDate) {
+                setParam('date', '')
+              }
               if (selectedDate) {
                 setParam('date', format(selectedDate, 'yyyy-MM-dd'))
               }

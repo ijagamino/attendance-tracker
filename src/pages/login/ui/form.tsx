@@ -1,5 +1,5 @@
 
-import { cn } from "@/lib/utils"
+import { useAuth } from "@/app/providers/auth-provider"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,41 +11,51 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { NavLink, useNavigate } from "react-router"
-import { isAuthApiError, type Provider } from "@supabase/supabase-js"
-import { useAuth } from "@/app/providers/auth-provider"
-import { useState } from "react"
-import { toast } from "sonner"
 import { InputGroup, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
-import { EyeOffIcon, EyeIcon } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import useFieldErrors from "@/hooks/use-field-errors"
+import { cn } from "@/lib/utils"
+import { loginSchema } from "@/shared/schemas/auth.schema"
+import { isAuthApiError, type Provider } from "@supabase/supabase-js"
+import { EyeIcon, EyeOffIcon } from "lucide-react"
+import { useState } from "react"
+import { NavLink } from "react-router"
+import { toast } from "sonner"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { loginWithPassword, loginWithOAuth, } = useAuth()
-  const navigate = useNavigate()
+  const { fieldErrors, handleSetFieldErrors, emptyFieldErrors } = useFieldErrors()
+  const { loginWithPassword, loginWithOAuth } = useAuth()
 
   const [passwordInputType, setPasswordInputType] = useState<
     'text' | 'password'
   >('password')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
 
   async function handleLoginWithPassword() {
+    emptyFieldErrors()
+    setIsLoading(true)
     try {
+      const validate = loginSchema.safeParse({ email, password })
+      if (!validate.success) return handleSetFieldErrors(validate.error)
       await loginWithPassword(email, password)
-      navigate('/')
     } catch (error) {
       if (isAuthApiError(error)) {
         toast.error(error.message)
       }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -77,10 +87,10 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                <FieldError errors={fieldErrors.email} />
               </Field>
               <Field>
                 <div className="flex items-center">
@@ -113,9 +123,13 @@ export function LoginForm({
                     {passwordInputType === 'password' ? <EyeOffIcon /> : <EyeIcon />}
                   </InputGroupButton>
                 </InputGroup>
+                <FieldError errors={fieldErrors.password} />
               </Field>
 
-              <Button onClick={() => { handleLoginWithPassword() }}>Login</Button>
+              <Button onClick={() => { handleLoginWithPassword() }}>
+                {isLoading && <Spinner />}
+                Login
+              </Button>
 
               <FieldSeparator>Or</FieldSeparator>
 

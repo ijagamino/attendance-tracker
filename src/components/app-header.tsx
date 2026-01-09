@@ -3,14 +3,16 @@ import { Button } from '@/components/ui/button.tsx'
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
+  navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu'
 import type { Role } from '@/supabase/global.types'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { MoreHorizontalIcon } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { useTheme } from '@/app/providers/theme-provider'
+import { cn } from '@/lib/utils'
+import { TypographyH4 } from './ui/typography'
 
 type NavItem = {
   title: string
@@ -36,6 +38,12 @@ const navItems: NavItem[] = [
     href: '/records',
     isAuth: true,
   },
+  {
+    title: 'Users',
+    href: '/users',
+    isAuth: true,
+    role: 'admin',
+  },
 ]
 
 export default function AppHeader() {
@@ -44,7 +52,7 @@ export default function AppHeader() {
 
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b">
-      <h6>Attendance Tracker System</h6>
+      <TypographyH4>Attendance Tracker System</TypographyH4>
 
       <div className="flex space-x-2">
         <NavigationMenu>
@@ -57,9 +65,18 @@ export default function AppHeader() {
               })
               .map((navItem) => (
                 <NavigationMenuItem key={navItem.href}>
-                  <NavigationMenuLink asChild>
-                    <NavLink to={navItem.href}>{navItem.title}</NavLink>
-                  </NavigationMenuLink>
+                  <NavLink
+                    className={({ isActive }) =>
+
+                      cn(
+                        navigationMenuTriggerStyle(),
+                        'border-b-2 border-background',
+                        isActive && 'border-b-primary')
+                    }
+                    to={navItem.href}
+                  >
+                    {navItem.title}
+                  </NavLink>
                 </NavigationMenuItem>
               ))}
           </NavigationMenuList>
@@ -72,6 +89,12 @@ export default function AppHeader() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <NavLink to="/settings">
+                Settings
+              </NavLink>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             {/* <DropdownMenuLabel>My Account</DropdownMenuLabel> */}
             {/* <DropdownMenuSeparator /> */}
             {/* <DropdownMenuItem asChild> */}

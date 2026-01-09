@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router'
-import type { Column } from '@/shared/types'
-import type { AttendanceRecord } from '@/supabase/global.types'
 import { DataTable } from '@/components/data-table'
 import { formatDateStringToLocaleTime, formatInterval } from '@/lib/format'
+import type { Column } from '@/shared/types'
+import type { AttendanceRecord } from '@/supabase/global.types'
+import { useNavigate } from 'react-router'
 
 export default function AttendanceRecordTable({
   attendanceRecords,
