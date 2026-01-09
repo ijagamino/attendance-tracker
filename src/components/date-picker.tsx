@@ -4,7 +4,6 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { Calendar } from './ui/calendar'
 import { useState } from 'react'
 import { ButtonGroup } from './ui/button-group'
-import { cn } from '@/lib/utils'
 
 export default function DatePicker({
   onSelectDate,
