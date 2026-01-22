@@ -85,8 +85,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const firstName = userMetadata.first_name
         const lastName = userMetadata.last_name
         const name = (firstName && lastName) ? `${firstName} ${lastName}` : userMetadata.name ?? userMetadata.full_name
-        console.log(userMetadata.name)
-        console.log(userMetadata.full_name)
         setFirstName(firstName)
         setLastName(lastName)
         setFullName(name)
