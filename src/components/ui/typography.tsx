@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export function TypographyH1({ children }: { children: ReactNode }) {
   return (

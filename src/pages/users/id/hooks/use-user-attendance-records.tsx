@@ -33,7 +33,7 @@ export default function useUserAttendanceRecords(
     ) => {
       const query = supabase
         .from('attendance_records')
-        .select('*, profiles!inner(id, first_name)', {
+        .select('*, profiles!inner(id, first_name, last_name)', {
           count: 'exact',
         })
 
