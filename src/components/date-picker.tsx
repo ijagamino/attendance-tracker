@@ -7,41 +7,40 @@ import { ButtonGroup } from './ui/button-group'
 
 export default function DatePicker({
   onSelectDate,
+  id,
 }: {
   onSelectDate: (selectedDate: Date | undefined) => void
+  id: string
 }) {
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [open, setOpen] = useState(false)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="flex">
-        <ButtonGroup>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className="justify-between w-48 font-normal"
-            >
-              {date ? date.toLocaleDateString() : 'Select date'}
-              <ChevronDownIcon />
-            </Button>
-          </PopoverTrigger>
+      <ButtonGroup >
+        <PopoverTrigger asChild>
           <Button
             variant="outline"
-            onClick={(e) => {
-              e.stopPropagation()
-              onSelectDate(undefined)
-              setDate(undefined)
-            }}
-            disabled={!date}
+            id={id}
+            className="justify-between w-[calc(100%-40px)] font-normal"
           >
-            <CircleXIcon
-            />
+            {date ? date.toLocaleDateString() : 'Select date'}
+            <ChevronDownIcon />
           </Button>
-        </ButtonGroup>
-
-      </div>
+        </PopoverTrigger>
+        <Button
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation()
+            onSelectDate(undefined)
+            setDate(undefined)
+          }}
+          disabled={!date}
+        >
+          <CircleXIcon
+          />
+        </Button>
+      </ButtonGroup>
 
       <PopoverContent className="w-auto p-0 overflow-hidden" align="start">
         <Calendar

@@ -4,14 +4,14 @@ import { supabase } from "@/supabase/client";
 import type { Profile } from "@/supabase/global.types";
 import { useCallback, useEffect, useState } from "react";
 import UserTable from "./ui/table";
-import { TypographyH4 } from "@/components/ui/typography";
+import { TypographyH2 } from "@/components/ui/typography";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupButton } from "@/components/ui/input-group";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, UserPlus } from "lucide-react";
 import { createUserSchema } from "@/shared/schemas/user.schema";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import useFieldErrors from "@/hooks/use-field-errors";
@@ -26,7 +26,6 @@ export default function UsersPage() {
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [passwordInputType, setPasswordInputType] = useState<'text' | 'password'>('password')
-
 
   const { searchParams, setParam } = useQueryParam({
     page: '1',
@@ -126,12 +125,16 @@ export default function UsersPage() {
 
   return (
     <>
-      <div className="py-4 flex justify-between items-center">
-        <TypographyH4>User List</TypographyH4>
+      <div className="flex justify-between items-center">
+        <header>
+          <TypographyH2>User List</TypographyH2>
+        </header>
+
         <div className="flex items-center">
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
+                <UserPlus />
                 Add User
               </Button>
             </DialogTrigger>
@@ -228,15 +231,17 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <UserTable userProfiles={userProfiles} />
+      <div className="mt-2">
+        <UserTable userProfiles={userProfiles} />
 
-      <PaginationButtons
-        page={page}
-        totalPage={totalPage}
-        onPageChange={(newPage) => {
-          setParam('page', newPage.toString())
-        }}
-      />
+        <PaginationButtons
+          page={page}
+          totalPage={totalPage}
+          onPageChange={(newPage) => {
+            setParam('page', newPage.toString())
+          }}
+        />
+      </div>
     </>
   )
 }

@@ -5,4 +5,5 @@ export interface Column<T> {
   value?: string
   format?: (value: unknown, row: T) => ReactNode
   Cell?: (row: T, value?: unknown) => ReactNode
+  visibility?: boolean
 }

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 import DatePicker from '@/components/date-picker'
 import AttendanceRecordTable from './ui/table'
-import { TypographyH1 } from '@/components/ui/typography'
+import { TypographyH2 } from '@/components/ui/typography'
 import PaginationButtons from '@/components/pagination-buttons'
 import useQueryParam from '@/hooks/use-query-param'
 import { supabase } from '@/supabase/client'
@@ -56,10 +56,10 @@ export default function RecordsPage() {
   return (
     <>
       <header>
-        <TypographyH1>Attendance Records</TypographyH1>
+        <TypographyH2>Attendance Records</TypographyH2>
       </header>
 
-      <div className="flex justify-between mb-2 space-x-2">
+      <div className="mt-2 flex justify-between mb-2 space-x-2">
         <div className="flex-1 max-w-sm space-y-1">
           <Label htmlFor="name">Search name</Label>
           <Input
@@ -74,6 +74,7 @@ export default function RecordsPage() {
         <div className="space-y-1">
           <Label htmlFor="date">Filter by date</Label>
           <DatePicker
+            id="date"
             onSelectDate={(selectedDate) => {
               if (!selectedDate) {
                 setParam('date', '')

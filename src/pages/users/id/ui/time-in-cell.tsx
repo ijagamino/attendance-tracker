@@ -1,6 +1,7 @@
+import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatDateStringToLocaleTime } from '@/lib/format'
 import { supabase } from '@/supabase/client'
@@ -16,6 +17,7 @@ export default function TimeInCell({
   row: AttendanceRecord,
   onUpdate: (updatedRow: AttendanceRecord) => void
 }) {
+  const { role } = useAuth()
   const [timeIn, setTimeIn] = useState<string>('')
   const [open, setOpen] = useState<boolean>(false)
   const time = row.time_in ? format(row.time_in, 'HH:mm:ss') : ''
@@ -43,13 +45,19 @@ export default function TimeInCell({
     setOpen(false)
   }
 
+  const formattedTimeIn = row.time_in ? formatDateStringToLocaleTime(row.time_in) : '---'
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        {row.time_in ?
-          formatDateStringToLocaleTime(row.time_in) : '---'
-        }
-      </PopoverTrigger>
+      {role === "admin"
+        ? (
+          <PopoverTrigger>
+            {formattedTimeIn}
+          </PopoverTrigger>
+        ) : (
+          formattedTimeIn
+        )
+      }
       <PopoverContent className="grid gap-4">
         <div className="space-y-2">
           <h4 className="leading-none font-medium">Time In</h4>
@@ -57,8 +65,8 @@ export default function TimeInCell({
             Override time in for {row.date}.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <Label htmlFor="time_in">Time In</Label>
+        <Field className="grid grid-cols-3 gap-2">
+          <FieldLabel htmlFor="time_in">Time In</FieldLabel>
           <Input
             id="time_in"
             className="col-span-2"
@@ -66,7 +74,7 @@ export default function TimeInCell({
             defaultValue={time}
             onChange={(e) => setTimeIn(e.target.value)}
           />
-        </div>
+        </Field>
         <Button onClick={() => handleUpdate()}>Update</Button>
       </PopoverContent>
     </Popover>

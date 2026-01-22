@@ -42,7 +42,7 @@ export type Database = {
           status: string | null
           time_in: string | null
           time_out: string | null
-          total_hours: unknown
+          total_hours: string | null
           user_id: string
         }
         Insert: {
@@ -52,7 +52,7 @@ export type Database = {
           status?: string | null
           time_in?: string | null
           time_out?: string | null
-          total_hours?: unknown
+          total_hours?: string | null
           user_id: string
         }
         Update: {
@@ -62,7 +62,7 @@ export type Database = {
           status?: string | null
           time_in?: string | null
           time_out?: string | null
-          total_hours?: unknown
+          total_hours?: string | null
           user_id?: string
         }
         Relationships: [
@@ -82,6 +82,122 @@ export type Database = {
           },
           {
             foreignKeyName: "attendance_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          end_date: string
+          id: number
+          is_approved: boolean | null
+          notes: string | null
+          reason: string
+          start_date: string
+          user_id: string
+        }
+        Insert: {
+          end_date: string
+          id?: never
+          is_approved?: boolean | null
+          notes?: string | null
+          reason: string
+          start_date: string
+          user_id: string
+        }
+        Update: {
+          end_date?: string
+          id?: never
+          is_approved?: boolean | null
+          notes?: string | null
+          reason?: string
+          start_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_user_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      logged_actions: {
+        Row: {
+          action_timestamp: string
+          action_type: string
+          additional_info: Json | null
+          changed_fields: Json | null
+          id: number
+          row_data: Json | null
+          schema_name: string
+          statement_only: string | null
+          table_name: string
+          transaction_id: unknown
+          user_id: string
+        }
+        Insert: {
+          action_timestamp?: string
+          action_type: string
+          additional_info?: Json | null
+          changed_fields?: Json | null
+          id?: number
+          row_data?: Json | null
+          schema_name: string
+          statement_only?: string | null
+          table_name: string
+          transaction_id?: unknown
+          user_id: string
+        }
+        Update: {
+          action_timestamp?: string
+          action_type?: string
+          additional_info?: Json | null
+          changed_fields?: Json | null
+          id?: number
+          row_data?: Json | null
+          schema_name?: string
+          statement_only?: string | null
+          table_name?: string
+          transaction_id?: unknown
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logged_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "dashboard_user_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logged_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logged_actions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_profile_summary"
@@ -131,7 +247,7 @@ export type Database = {
           id: string | null
           total_absents: number | null
           total_lates: number | null
-          total_rendered_hours: unknown
+          total_rendered_hours: string | null
         }
         Relationships: []
       }
@@ -140,12 +256,16 @@ export type Database = {
           id: string | null
           total_absents: number | null
           total_lates: number | null
-          total_rendered_hours: unknown
+          total_rendered_hours: string | null
         }
         Relationships: []
       }
     }
     Functions: {
+      audit_table: {
+        Args: { target_schema: string; target_table: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       old_role: {
         Args: never

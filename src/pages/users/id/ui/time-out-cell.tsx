@@ -1,14 +1,15 @@
+import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { formatDateStringToLocaleTime } from '@/lib/format'
+import { isValidDate } from '@/lib/valid-date'
 import { supabase } from '@/supabase/client'
 import type { AttendanceRecord } from '@/supabase/global.types'
 import { format } from 'date-fns'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { isValidDate } from '@/lib/valid-date'
 
 export default function TimeOutCell({
   row,
@@ -17,6 +18,7 @@ export default function TimeOutCell({
   row: AttendanceRecord,
   onUpdate: (updatedRow: AttendanceRecord) => void
 }) {
+  const { role } = useAuth()
   const [timeOut, setTimeOut] = useState<string>('')
   const [open, setOpen] = useState<boolean>(false)
   const time = row.time_out ? format(row.time_out, 'HH:mm:ss') : '00:00:00'
@@ -50,13 +52,21 @@ export default function TimeOutCell({
     setOpen(false)
   }
 
+  const formattedTimeOut = row.time_out ?
+    formatDateStringToLocaleTime(row.time_out) : '---'
+
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        {row.time_out ?
-          formatDateStringToLocaleTime(row.time_out) : '---'
-        }
-      </PopoverTrigger>
+      {role === "admin"
+        ? (
+          <PopoverTrigger>
+            {formattedTimeOut}
+          </PopoverTrigger>
+        ) : (
+          formattedTimeOut
+        )
+      }
       <PopoverContent className="grid gap-4">
         <div className="space-y-2">
           <h4 className="leading-none font-medium">Time Out</h4>

@@ -14,6 +14,8 @@ import ForgotPasswordPage from '@/pages/forgot-password/page'
 import UpdatePasswordPage from '@/pages/update-password/page'
 import SettingsPage from '@/pages/settings/page'
 import UsersPage from '@/pages/users/page'
+import LeaveRequestsPage from '@/pages/leave-requests/page'
+import ActivityLogsPage from '@/pages/activity-logs/page'
 
 export default function AppRouter() {
   return (
@@ -33,12 +35,27 @@ export default function AppRouter() {
               <HomePage />
             }
           />
+
+          <Route
+            path="activity-logs"
+            element={
+              <ActivityLogsPage />
+            }
+          />
+
           <Route
             path="dashboard"
             element={
               <ProtectRoute allowedRole="admin">
                 <DashboardPage />
               </ProtectRoute>
+            }
+          />
+
+          <Route
+            path="leave-requests"
+            element={
+              <LeaveRequestsPage />
             }
           />
 

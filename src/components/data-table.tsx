@@ -11,7 +11,7 @@ import _ from 'lodash'
 import type { Key } from 'react'
 
 export function DataTable<
-  T extends Record<string, string | number | boolean | null>,
+  T extends Record<string, string | number | boolean | object | null>,
 >({
   columns,
   rows,
@@ -41,9 +41,17 @@ export function DataTable<
         {columns && (
           <TableHeader>
             <TableRow>
-              {formattedColumns.map((column) => (
-                <TableHead key={column.value}>{column.label}</TableHead>
-              ))}
+              {formattedColumns
+                .filter((column) => {
+                  if (column.visibility === undefined || column.visibility === null) {
+                    return column
+                  }
+
+                  return column.visibility
+                })
+                .map((column) => (
+                  <TableHead key={column.value}>{column.label}</TableHead>
+                ))}
             </TableRow>
           </TableHeader>
         )}
@@ -51,28 +59,35 @@ export function DataTable<
           {rows.map((row) => (
             <TableRow key={row.id as Key} onClick={() => onRowClick?.(row)}>
               {columns &&
-                formattedColumns.map((column) => (
-                  <TableCell key={column.value ?? column.label}>
-                    {(() => {
-                      const rawValue = column.value
-                        ? _.get(row, column.value)
-                        : undefined
+                formattedColumns.
+                  filter((column) => {
+                    if (column.visibility === undefined || column.visibility === null) {
+                      return column
+                    }
 
-                      if (column.Cell) {
-                        return column.Cell(row, rawValue)
-                      }
+                    return column.visibility
+                  })
+                  .map((column) => (
+                    <TableCell key={column.value ?? column.label}>
+                      {(() => {
+                        const rawValue = column.value
+                          ? _.get(row, column.value)
+                          : undefined
+                        if (column.Cell) {
+                          return column.Cell(row, rawValue)
+                        }
 
-                      if (column.format) {
-                        return column.format(rawValue, row)
-                      }
+                        if (column.format) {
+                          return column.format(rawValue, row)
+                        }
 
-                      if (rawValue === undefined || rawValue === null) return '-'
+                        if (rawValue === undefined || rawValue === null) return '---'
 
-                      return rawValue.toString()
-                    })()}
-                  </TableCell>
-                ))}
-              {!columns && <TableCell>{Object.values(row)}</TableCell>}
+                        return rawValue.toString()
+                      })()}
+                    </TableCell>
+                  ))}
+              {!columns && <TableCell>{Object.values(row) as unknown as string}</TableCell>}
             </TableRow>
           ))}
         </TableBody>

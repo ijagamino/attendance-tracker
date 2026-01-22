@@ -1,4 +1,4 @@
-
+import { useAuth } from '@/app/providers/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,6 +15,7 @@ export default function RemarksCell({
   row: AttendanceRecord,
   onUpdate: (updatedRow: AttendanceRecord) => void
 }) {
+  const { role } = useAuth()
   const [remarks, setRemarks] = useState<string>('')
   const [open, setOpen] = useState<boolean>(false)
 
@@ -38,11 +39,19 @@ export default function RemarksCell({
     setOpen(false)
   }
 
+  const formattedRemarks = row.remarks ?? 'None'
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        {row.remarks ?? 'None'}
-      </PopoverTrigger>
+      {role === "admin"
+        ? (
+          <PopoverTrigger>
+            {formattedRemarks}
+          </PopoverTrigger>
+        ) : (
+          formattedRemarks
+        )
+      }
       <PopoverContent className="grid gap-4">
         <div className="space-y-2">
           <h4 className="leading-none font-medium">Time In</h4>

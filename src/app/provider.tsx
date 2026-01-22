@@ -6,7 +6,9 @@ import type { ReactNode } from 'react'
 export default function AppProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
       <Toaster />
     </ThemeProvider>
   )
