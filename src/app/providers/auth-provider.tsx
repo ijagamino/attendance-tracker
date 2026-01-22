@@ -17,6 +17,10 @@ type AuthProviderProps = {
 type AuthProviderState = {
   userId: string | undefined
   role: Role | null
+  firstName: string | undefined
+  lastName: string | undefined
+  fullName: string | undefined
+  avatar: string | undefined
   isLoading: boolean
   isAuth: boolean
   loginWithPassword: (username: string, password: string) => Promise<void>
@@ -27,6 +31,10 @@ type AuthProviderState = {
 const initialState: AuthProviderState = {
   userId: undefined,
   role: null,
+  firstName: undefined,
+  lastName: undefined,
+  fullName: undefined,
+  avatar: undefined,
   isLoading: true,
   isAuth: false,
   loginWithPassword: async () => { },
@@ -41,6 +49,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [role, setRole] = useState<Role | null>(null)
   const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true)
   const [isRoleLoading, setIsRoleLoading] = useState<boolean>(true)
+  const [firstName, setFirstName] = useState<string | undefined>()
+  const [lastName, setLastName] = useState<string | undefined>()
+  const [fullName, setFullName] = useState<string | undefined>()
+  const [avatar, setAvatar] = useState<string | undefined>()
 
   const isLoading = isSessionLoading || isRoleLoading
 
@@ -68,9 +80,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsSessionLoading(false)
       setSession(session)
+      const userMetadata = session?.user.user_metadata
+      if (userMetadata) {
+        const firstName = userMetadata.first_name
+        const lastName = userMetadata.last_name
+        const name = userMetadata.name ?? userMetadata.full_name ?? (firstName && lastName) ? `${firstName} ${lastName}` : 'Unknown'
+        setFirstName(firstName)
+        setLastName(lastName)
+        setFullName(name)
+        setAvatar(userMetadata.avatar_url ?? userMetadata.image)
+      }
     })
-
-
     return () => subscription.unsubscribe()
   }, [])
 
@@ -101,6 +121,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         userId,
         role,
+        firstName,
+        lastName,
+        fullName,
+        avatar,
         isLoading,
         isAuth,
         loginWithPassword,

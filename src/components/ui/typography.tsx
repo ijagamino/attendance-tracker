@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import type { ComponentProps, ReactNode } from "react";
 
 export function TypographyH1({ children }: { children: ReactNode }) {
   return (
@@ -23,9 +24,15 @@ export function TypographyH3({ children }: { children: ReactNode }) {
   )
 }
 
-export function TypographyH4({ children }: { children: ReactNode }) {
+export function TypographyH4({
+  children,
+  className,
+}: {
+  children: ReactNode,
+  className?: string,
+}) {
   return (
-    <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+    <h4 className={cn("scroll-m-20 text-xl font-semibold tracking-tight", className)}>
       {children}
     </h4>
   )

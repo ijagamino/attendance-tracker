@@ -1,14 +1,20 @@
 import { Outlet } from "react-router";
 import AppHeader from "@/components/app-header";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import AppSidebar from "@/components/app-sidebar";
 
 export default function DefaultLayout() {
   return (
     <>
-      <AppHeader />
-
-      <main className="container max-w-4xl px-4 lg:px-0 mx-auto mt-8">
-        <Outlet />
-      </main>
+      <SidebarProvider>
+        <AppSidebar />
+        <main className="w-full">
+          <AppHeader />
+          <div className="container max-w-4xl mx-auto mt-8">
+            <Outlet />
+          </div>
+        </main>
+      </SidebarProvider>
     </>
   );
 }

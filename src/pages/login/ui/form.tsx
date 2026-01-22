@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { InputGroup, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
+import { TypographyH1 } from "@/components/ui/typography"
 import useFieldErrors from "@/hooks/use-field-errors"
 import { cn } from "@/lib/utils"
 import { loginSchema } from "@/shared/schemas/auth.schema"

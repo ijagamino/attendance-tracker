@@ -1,92 +1,33 @@
 import { useAuth } from '@/app/providers/auth-provider'
-import { Button } from '@/components/ui/button.tsx'
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu'
-import type { Role } from '@/supabase/global.types'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontalIcon } from 'lucide-react'
-import { NavLink } from 'react-router'
 import { useTheme } from '@/app/providers/theme-provider'
-import { cn } from '@/lib/utils'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { UserIcon } from 'lucide-react'
+import { NavLink } from 'react-router'
+import { SidebarTrigger } from './ui/sidebar'
 import { TypographyH4 } from './ui/typography'
-
-type NavItem = {
-  title: string
-  href: string
-  isAuth: boolean
-  role?: Role
-}
-
-const navItems: NavItem[] = [
-  {
-    title: 'Home',
-    href: '/',
-    isAuth: true,
-  },
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    isAuth: true,
-    role: 'admin',
-  },
-  {
-    title: 'Records',
-    href: '/records',
-    isAuth: true,
-  },
-  {
-    title: 'Users',
-    href: '/users',
-    isAuth: true,
-    role: 'admin',
-  },
-]
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 
 export default function AppHeader() {
-  const { isAuth, role, logout } = useAuth()
+  const { fullName, avatar, logout } = useAuth()
   const { setTheme } = useTheme()
 
   return (
-    <header className="flex items-center justify-between px-4 py-2 border-b">
-      <TypographyH4>Attendance Tracker System</TypographyH4>
+    <header className="grid grid-cols-3 items-center justify-between px-4 py-2 border-b">
+      <SidebarTrigger />
 
-      <div className="flex space-x-2">
-        <NavigationMenu>
-          <NavigationMenuList>
-            {navItems
-              .filter((navItem) => {
-                if (navItem.role) return navItem.role === role
+      <TypographyH4 className="text-center">Attendance Tracking System</TypographyH4>
 
-                return navItem.isAuth === isAuth
-              })
-              .map((navItem) => (
-                <NavigationMenuItem key={navItem.href}>
-                  <NavLink
-                    className={({ isActive }) =>
-
-                      cn(
-                        navigationMenuTriggerStyle(),
-                        'border-b-2 border-background',
-                        isActive && 'border-b-primary')
-                    }
-                    to={navItem.href}
-                  >
-                    {navItem.title}
-                  </NavLink>
-                </NavigationMenuItem>
-              ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-
+      <div className="flex gap-4 items-center justify-end">
+        Welcome, {fullName}!
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <MoreHorizontalIcon />
-            </Button>
+            <Avatar>
+              <AvatarImage src={avatar} />
+              <AvatarFallback>
+                <UserIcon />
+              </AvatarFallback>
+
+            </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
