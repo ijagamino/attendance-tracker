@@ -50,7 +50,7 @@ export function DataTable<
                   return column.visibility
                 })
                 .map((column) => (
-                  <TableHead key={column.value}>{column.label}</TableHead>
+                  <TableHead key={column.value} className='text-primary'>{column.label}</TableHead>
                 ))}
             </TableRow>
           </TableHeader>
