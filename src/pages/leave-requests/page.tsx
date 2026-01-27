@@ -156,7 +156,7 @@ export default function LeaveRequestsPage() {
                     <Button variant="outline">Cancel</Button>
                   </DialogClose>
                   <Button form="create_user">
-                    Add User
+                    File Leave
                   </Button>
                 </DialogFooter>
               </DialogContent>
